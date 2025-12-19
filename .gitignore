@@ -1,0 +1,9 @@
+.claude
+.DS_Store
+
+target
+Cargo.lock
+
+/TODO
+/notes
+/scratch.md
