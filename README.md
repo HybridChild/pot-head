@@ -1,4 +1,4 @@
-# virtual-pot
+# pot-head
 
 Embedded developers working with physical controls (potentiometers, faders, sliders) face common challenges:
 - **Noisy ADC readings** causing jittery output
@@ -10,10 +10,10 @@ This crate provides a reusable, zero-allocation, `no_std` solution for processin
 
 ## Core Principle
 
-**Virtual-Pot is a pure mathematical abstraction.** It transforms raw input values (typically ADC readings) into processed output values based on configuration and internal state. The crate handles no I/O, no interrupts, no HAL integration - just math.
+**pot-head is a pure mathematical abstraction.** It transforms raw input values (typically ADC readings) into processed output values based on configuration and internal state. The crate handles no I/O, no interrupts, no HAL integration - just math.
 
 ```
-Raw ADC Value → Virtual-Pot Processing → Clean Output Value
+Raw ADC Value → pot-head Processing → Clean Output Value
 ```
 
 ## Target Use Cases

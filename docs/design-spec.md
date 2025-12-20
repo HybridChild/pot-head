@@ -1,4 +1,4 @@
-# Virtual-Pot: Design Specification
+# pot-head: Design Specification
 
 ## Design Status
 
@@ -56,7 +56,7 @@ This crate explicitly does **NOT**:
 **Type Parameter Design:**
 
 ```rust
-pub struct VirtualPot<TIn, TOut = TIn>
+pub struct PotHead<TIn, TOut = TIn>
 where
     TIn: Numeric,
     TOut: Numeric,
@@ -66,7 +66,7 @@ where
 }
 ```
 
-The default `TOut = TIn` means simple same-type cases remain concise (`VirtualPot<u16>` instead of `VirtualPot<u16, u16>`).
+The default `TOut = TIn` means simple same-type cases remain concise (`PotHead<u16>` instead of `PotHead<u16, u16>`).
 
 **Processing Flow:**
 
@@ -81,30 +81,30 @@ Input (TIn) → Normalize (f32) → Filter → Curve → Snap Zones → Denormal
 ```rust
 // Example 1: Same input/output type (simple case)
 // Type inference from builder - no explicit type parameters needed!
-let mut pot = VirtualPot::builder()
+let mut pot = PotHead::builder()
     .input_range(0_u16..4095_u16)    // TIn inferred as u16
     .output_range(0_u16..1000_u16)   // TOut inferred as u16
     .build();
-// Returns VirtualPot<u16, u16> (or just VirtualPot<u16> via default)
+// Returns PotHead<u16, u16> (or just PotHead<u16> via default)
 
 // Example 2: ADC → normalized float (most common embedded pattern)
-let mut pot = VirtualPot::builder()
+let mut pot = PotHead::builder()
     .input_range(0_u16..4095_u16)     // TIn = u16 (12-bit ADC)
     .output_range(0.0_f32..1.0_f32)   // TOut = f32 (normalized)
     .response_curve(ResponseCurve::Logarithmic)
     .build();
-// Returns VirtualPot<u16, f32>
+// Returns PotHead<u16, f32>
 // No wasteful conversions - ADC stays u16 until normalization
 
 // Example 3: Float ADC → integer PWM
-let mut pot = VirtualPot::builder()
+let mut pot = PotHead::builder()
     .input_range(0.0_f32..3.3_f32)    // TIn = f32 (voltage from floating ADC)
     .output_range(0_u16..65535_u16)   // TOut = u16 (16-bit PWM)
     .build();
-// Returns VirtualPot<f32, u16>
+// Returns PotHead<f32, u16>
 
 // Example 4: Explicit type parameters (when inference insufficient)
-let mut pot: VirtualPot<u16, f32> = VirtualPot::builder()
+let mut pot: PotHead<u16, f32> = PotHead::builder()
     .input_range(0..4095)
     .output_range(0.0..1.0)
     .build();
@@ -119,7 +119,7 @@ static VOLUME_CONFIG: Config<u16, f32> = Config {
     // ... other config
 };
 
-let mut volume_pot = VirtualPot::from_static(&VOLUME_CONFIG);
+let mut volume_pot = PotHead::from_static(&VOLUME_CONFIG);
 ```
 
 **Implementation Notes:**
@@ -263,7 +263,7 @@ impl<T> Config<T> {
     }
 }
 
-impl<T> VirtualPot<T> {
+impl<T> PotHead<T> {
     fn apply_snap_zones(&self, value: T) -> T {
         // Process zones in order - first match wins
         for zone in self.config.snap_zones {
@@ -342,11 +342,11 @@ The `update()` method is called in tight loops (1-10ms intervals in embedded sys
 
 **Layer 1: Build-Time Validation (Primary Defense)**
 
-Catch configuration errors when the `VirtualPot` is constructed:
+Catch configuration errors when the `PotHead` is constructed:
 
 ```rust
-impl<T> VirtualPotBuilder<T> {
-    pub fn build(self) -> Result<VirtualPot<T>, ConfigError> {
+impl<T> PotHeadBuilder<T> {
+    pub fn build(self) -> Result<PotHead<T>, ConfigError> {
         // Validate ranges (prevents division by zero)
         if self.input_min >= self.input_max {
             return Err(ConfigError::InvalidInputRange {
@@ -375,7 +375,7 @@ impl<T> VirtualPotBuilder<T> {
             self.validate_snap_zones()?;
         }
 
-        Ok(VirtualPot {
+        Ok(PotHead {
             config: ConfigRef::Owned(self.into_config()),
             state: State::default(),
         })
@@ -396,7 +396,7 @@ pub enum ConfigError {
 Handle out-of-range inputs gracefully (ADC glitches, noise spikes):
 
 ```rust
-impl<T> VirtualPot<T> {
+impl<T> PotHead<T> {
     pub fn update(&mut self, input: T) -> T {
         // Clamp input to valid range
         // This handles ADC glitches and noise spikes gracefully
@@ -427,7 +427,7 @@ impl<T> VirtualPot<T> {
 Catch unexpected conditions during development without release overhead:
 
 ```rust
-impl<T> VirtualPot<T> {
+impl<T> PotHead<T> {
     pub fn update(&mut self, input: T) -> T {
         // In debug builds, catch unexpected out-of-range inputs
         // This helps identify configuration errors during development
@@ -467,7 +467,7 @@ For safety-critical applications that want explicit error handling:
 
 ```rust
 #[cfg(feature = "strict-runtime-checks")]
-impl<T> VirtualPot<T> {
+impl<T> PotHead<T> {
     /// Strict update that returns an error instead of clamping invalid input.
     /// Only available with the `strict-runtime-checks` feature.
     /// Use this in safety-critical applications where invalid input must be handled explicitly.
@@ -660,7 +660,7 @@ pub enum GrabMode {
     PassThrough,
 }
 
-impl<T> VirtualPot<T> {
+impl<T> PotHead<T> {
     fn update(&mut self, input: T) -> T {
         match self.config.grab_mode {
             GrabMode::None => {
@@ -730,7 +730,7 @@ pub struct State<TOut> {
 **Solution:** Store the physical position in state and provide methods to query both the virtual (locked) output and the current physical position:
 
 ```rust
-impl<TIn, TOut> VirtualPot<TIn, TOut> {
+impl<TIn, TOut> PotHead<TIn, TOut> {
     /// Returns the current output value (may be locked if grab mode active)
     pub fn update(&mut self, input: TIn) -> TOut {
         // Process through normalize→filter→curve
@@ -880,7 +880,7 @@ Single pot:        Const generic (~1KB ROM) < Hybrid (~3KB ROM)
 
 ```rust
 // Approach 1: Builder pattern (config in RAM, max flexibility)
-let mut pot = VirtualPot::builder()
+let mut pot = PotHead::builder()
     .input_range(0..4095)
     .output_range(0.0..1.0)
     .response_curve(ResponseCurve::Linear)
@@ -915,8 +915,8 @@ static PAN_CONFIG: Config<u16, i16> = Config {
     grab_mode: GrabMode::None,
 };
 
-let mut volume_pot = VirtualPot::from_static(&VOLUME_CONFIG);
-let mut pan_pot = VirtualPot::from_static(&PAN_CONFIG);
+let mut volume_pot = PotHead::from_static(&VOLUME_CONFIG);
+let mut pan_pot = PotHead::from_static(&PAN_CONFIG);
 // Config lives in ROM (flash), only state lives in RAM
 ```
 

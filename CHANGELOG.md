@@ -15,4 +15,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MIT and Apache-2.0 dual licensing
 - Cargo.toml package configuration
 
-[Unreleased]: https://github.com/yourusername/virtual-pot/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/yourusername/pot-head/compare/v0.1.0...HEAD

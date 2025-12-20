@@ -1,4 +1,4 @@
-# Virtual-Pot Development Guide
+# pot-head Development Guide
 
 ## Project Status
 
@@ -6,11 +6,11 @@
 
 This is a Rust `no_std` embedded library for processing potentiometer inputs. The design is complete and documented in `docs/design-spec.md`. We're now ready to implement the core functionality.
 
-## What Virtual-Pot Does
+## What pot-head Does
 
 Transforms raw ADC values into clean, processed output values:
 ```
-Raw ADC Value → Virtual-Pot Processing → Clean Output Value
+Raw ADC Value → pot-head Processing → Clean Output Value
 ```
 
 **Core Features (v0.1):**
@@ -23,12 +23,12 @@ Raw ADC Value → Virtual-Pot Processing → Clean Output Value
 ## Project Structure
 
 ```
-virtual-pot/
+pot-head/
 ├── src/
 │   ├── lib.rs              # Main library entry point
 │   ├── config.rs           # Configuration types (Config, Builder, ConfigRef)
 │   ├── state.rs            # Runtime state management
-│   ├── virtualpot.rs       # Core VirtualPot implementation
+│   ├── pothead.rs          # Core PotHead implementation
 │   ├── filters/            # Noise filtering implementations
 │   ├── curves/             # Response curve implementations
 │   ├── hysteresis/         # Hysteresis mode implementations
@@ -47,7 +47,7 @@ This library does NO hardware interaction. It's a pure transformation function. 
 
 ### 2. Dual Type Parameters
 ```rust
-VirtualPot<TIn, TOut = TIn>
+PotHead<TIn, TOut = TIn>
 ```
 - `TIn`: Input type (typically ADC integer like `u16`)
 - `TOut`: Output type (often normalized `f32` or application-specific)
@@ -77,7 +77,7 @@ minimal = []  # Bare minimum
 ### Code Organization
 - Each major feature in its own module
 - Feature-gate implementations with `#[cfg(feature = "...")]`
-- Keep processing pipeline in `VirtualPot::update()` clean and linear
+- Keep processing pipeline in `PotHead::update()` clean and linear
 
 ### Processing Pipeline
 ```rust
@@ -107,7 +107,7 @@ Input (TIn)
 
 ### Builder Pattern Example
 ```rust
-let mut pot = VirtualPot::builder()
+let mut pot = PotHead::builder()
     .input_range(0_u16..4095_u16)       // TIn = u16
     .output_range(0.0_f32..1.0_f32)     // TOut = f32
     .response_curve(ResponseCurve::Logarithmic)
@@ -130,7 +130,7 @@ static VOLUME_CONFIG: Config<u16, f32> = Config {
     // ... other fields
 };
 
-let mut pot = VirtualPot::from_static(&VOLUME_CONFIG);
+let mut pot = PotHead::from_static(&VOLUME_CONFIG);
 ```
 
 ## Documentation Requirements
