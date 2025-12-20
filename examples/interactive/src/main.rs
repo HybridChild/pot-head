@@ -10,15 +10,18 @@ use std::io::{stdout, Write, Result};
 use std::time::Duration;
 
 const INPUT_MIN: u16 = 0;
-const INPUT_MAX: u16 = 4095;
+const INPUT_MAX: u16 = 100;
 const OUTPUT_MIN: f32 = 0.0;
 const OUTPUT_MAX: f32 = 1.0;
-const STEP_SIZE: u16 = 50;
+const REVERSED_MIN: f32 = 100.0;
+const REVERSED_MAX: f32 = -100.0;
+const STEP_SIZE: u16 = 1;
 const BAR_WIDTH: usize = 100;
 
 struct AppState {
     input_value: u16,
     pot: PotHead<u16, f32>,
+    pot_reversed: PotHead<u16, f32>,
     running: bool,
 }
 
@@ -37,9 +40,23 @@ impl AppState {
                 format!("PotHead config error: {:?}", e)
             ))?;
 
+        let config_reversed = Config {
+            input_min: INPUT_MIN,
+            input_max: INPUT_MAX,
+            output_min: REVERSED_MIN,
+            output_max: REVERSED_MAX,
+        };
+
+        let pot_reversed = PotHead::new(config_reversed)
+            .map_err(|e| std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                format!("PotHead reversed config error: {:?}", e)
+            ))?;
+
         Ok(Self {
             input_value: INPUT_MIN,
             pot,
+            pot_reversed,
             running: true,
         })
     }
@@ -58,6 +75,10 @@ impl AppState {
 
     fn get_output(&mut self) -> f32 {
         self.pot.update(self.input_value)
+    }
+
+    fn get_reversed_output(&mut self) -> f32 {
+        self.pot_reversed.update(self.input_value)
     }
 }
 
@@ -132,6 +153,7 @@ fn render_bar(value: f32, min: f32, max: f32, width: usize) -> String {
 
 fn render(state: &mut AppState) -> Result<()> {
     let output = state.get_output();
+    let reversed_output = state.get_reversed_output();
 
     let mut stdout = stdout();
 
@@ -155,16 +177,22 @@ fn render(state: &mut AppState) -> Result<()> {
         MoveTo(0, 7),
         Print(""),
         MoveTo(0, 8),
-        Print(format!("     Output [{} - {}]: Current value: {:.4}", OUTPUT_MIN, OUTPUT_MAX, output)),
+        Print(format!("     Standard Pot [{} - {}]: Current value: {:.4}", OUTPUT_MIN, OUTPUT_MAX, output)),
         MoveTo(0, 9),
         Print(format!("     {}", render_bar(output, OUTPUT_MIN, OUTPUT_MAX, BAR_WIDTH))),
         MoveTo(0, 10),
         Print(""),
         MoveTo(0, 11),
-        Print("╠════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"),
+        Print(format!("     Reversed Pot [{} - {}]: Current value: {:.2}", REVERSED_MIN, REVERSED_MAX, reversed_output)),
         MoveTo(0, 12),
-        Print("║  Controls: ← → arrows to adjust  |  q or Esc to quit                                                       ║"),
+        Print(format!("     {}", render_bar(reversed_output, REVERSED_MAX, REVERSED_MIN, BAR_WIDTH))),
         MoveTo(0, 13),
+        Print(""),
+        MoveTo(0, 14),
+        Print("╠════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"),
+        MoveTo(0, 15),
+        Print("║  Controls: ← → arrows to adjust  |  q or Esc to quit                                                       ║"),
+        MoveTo(0, 16),
         Print("╚════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"),
     )?;
 
