@@ -1,0 +1,17 @@
+[package]
+name = "pot-head"
+version = "0.1.0"
+edition = "2024"
+authors = ["Esben Dueholm Nørgaard"]
+license = "MIT OR Apache-2.0"
+description = ""
+repository = "https://github.com/HybridChild/pot-head"
+keywords = ["embedded", "potmeter", "pot", "no-std"]
+categories = ["embedded", "no-std"]
+exclude = ["examples/"]
+
+[dependencies]
+num-traits = { version = "0.2", default-features = false }
+
+[features]
+default = []
