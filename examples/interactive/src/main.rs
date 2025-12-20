@@ -25,16 +25,83 @@ const REVERSED_MAX: f32 = -100.0;
 // Bar properties
 const BAR_WIDTH: usize = 100;
 
-// 
+#[derive(Clone, Copy)]
+struct ColorScheme {
+    bar_color: Color,
+    indicator_color: Color,
+}
+
+impl ColorScheme {
+    fn dimmed(&self) -> ColorScheme {
+        ColorScheme {
+            bar_color: dim_color(self.bar_color),
+            indicator_color: dim_color(self.indicator_color),
+        }
+    }
+}
+
+fn dim_color(color: Color) -> Color {
+    match color {
+        Color::Rgb { r, g, b } => Color::Rgb {
+            r: r / 3,
+            g: g / 3,
+            b: b / 3,
+        },
+        other => other,
+    }
+}
+
+struct PotDisplay {
+    pot: PotHead<u16, f32>,
+    label: &'static str,
+    range_display: (f32, f32),
+    color_scheme: ColorScheme,
+    precision: usize,
+    dimmed: bool,
+}
+
+impl PotDisplay {
+    fn new(
+        pot: PotHead<u16, f32>,
+        label: &'static str,
+        range_display: (f32, f32),
+        color_scheme: ColorScheme,
+        precision: usize,
+        dimmed: bool,
+    ) -> Self {
+        Self {
+            pot,
+            label,
+            range_display,
+            color_scheme,
+            precision,
+            dimmed,
+        }
+    }
+
+    fn update(&mut self, input: u16) -> f32 {
+        self.pot.update(input)
+    }
+
+    fn active_color_scheme(&self) -> ColorScheme {
+        if self.dimmed {
+            self.color_scheme.dimmed()
+        } else {
+            self.color_scheme
+        }
+    }
+}
+
 struct AppState {
     input_value: u16,
-    pot_standard: PotHead<u16, f32>,
-    pot_reversed: PotHead<u16, f32>,
+    pots: Vec<PotDisplay>,
     running: bool,
 }
 
 impl AppState {
     fn new() -> Result<Self> {
+        let mut pots = Vec::new();
+
         // Standard potmeter
         let config_standard = Config {
             input_min: INPUT_MIN,
@@ -48,6 +115,18 @@ impl AppState {
                 std::io::ErrorKind::InvalidInput,
                 format!("PotHead config error: {:?}", e)
             ))?;
+
+        pots.push(PotDisplay::new(
+            pot_standard,
+            "Standard Pot",
+            (OUTPUT_MIN, OUTPUT_MAX),
+            ColorScheme {
+                bar_color: Color::Rgb { r: 0, g: 255, b: 0 },
+                indicator_color: Color::Rgb { r: 0, g: 200, b: 255 },
+            },
+            4,
+            false,  // not dimmed
+        ));
 
         // Reversed polarity potmeter
         let config_reversed = Config {
@@ -63,10 +142,21 @@ impl AppState {
                 format!("PotHead reversed config error: {:?}", e)
             ))?;
 
+        pots.push(PotDisplay::new(
+            pot_reversed,
+            "Reversed Pot",
+            (REVERSED_MIN, REVERSED_MAX),
+            ColorScheme {
+                bar_color: Color::Rgb { r: 255, g: 0, b: 255 },
+                indicator_color: Color::Rgb { r: 255, g: 100, b: 100 },
+            },
+            2,
+            true,  // dimmed to demonstrate the feature
+        ));
+
         Ok(Self {
             input_value: INPUT_MIN,
-            pot_standard,
-            pot_reversed,
+            pots,
             running: true,
         })
     }
@@ -81,14 +171,6 @@ impl AppState {
         self.input_value = self.input_value
             .saturating_sub(STEP_SIZE)
             .max(INPUT_MIN);
-    }
-
-    fn get_output(&mut self) -> f32 {
-        self.pot_standard.update(self.input_value)
-    }
-
-    fn get_reversed_output(&mut self) -> f32 {
-        self.pot_reversed.update(self.input_value)
     }
 }
 
@@ -215,11 +297,9 @@ fn render_bar(value: f32, min: f32, max: f32, width: usize, bar_color: Color, in
 }
 
 fn render(state: &mut AppState) -> Result<()> {
-    let output = state.get_output();
-    let reversed_output = state.get_reversed_output();
-
     let mut stdout = stdout();
 
+    // Start with header
     queue!(
         stdout,
         Clear(ClearType::All),
@@ -235,11 +315,23 @@ fn render(state: &mut AppState) -> Result<()> {
         ResetColor,
         MoveTo(0, 4),
         Print(""),
-        MoveTo(0, 5),
+    )?;
+
+    let mut line = 5;
+
+    // Render input
+    queue!(
+        stdout,
+        MoveTo(0, line),
         SetForegroundColor(Color::Rgb { r: 255, g: 255, b: 0 }),
         Print(format!("     Input [{} - {}]: Current value: {}", INPUT_MIN, INPUT_MAX, state.input_value)),
         ResetColor,
-        MoveTo(0, 6),
+    )?;
+    line += 1;
+
+    queue!(
+        stdout,
+        MoveTo(0, line),
         Print(format!("     {}", render_bar(
             state.input_value as f32,
             INPUT_MIN as f32,
@@ -248,44 +340,78 @@ fn render(state: &mut AppState) -> Result<()> {
             Color::Rgb { r: 255, g: 255, b: 0 },
             Color::Rgb { r: 255, g: 165, b: 0 }  // Orange indicator
         ))),
-        MoveTo(0, 7),
+    )?;
+    line += 1;
+
+    // Render each pot
+    for pot_display in &mut state.pots {
+        let output = pot_display.update(state.input_value);
+        let colors = pot_display.active_color_scheme();
+
+        queue!(
+            stdout,
+            MoveTo(0, line),
+            Print(""),
+        )?;
+        line += 1;
+
+        queue!(
+            stdout,
+            MoveTo(0, line),
+            SetForegroundColor(colors.bar_color),
+            Print(format!(
+                "     {} [{} - {}]: Current value: {:.prec$}",
+                pot_display.label,
+                pot_display.range_display.0,
+                pot_display.range_display.1,
+                output,
+                prec = pot_display.precision
+            )),
+            ResetColor,
+        )?;
+        line += 1;
+
+        queue!(
+            stdout,
+            MoveTo(0, line),
+            Print(format!("     {}", render_bar(
+                output,
+                pot_display.range_display.1.min(pot_display.range_display.0),
+                pot_display.range_display.1.max(pot_display.range_display.0),
+                BAR_WIDTH,
+                colors.bar_color,
+                colors.indicator_color
+            ))),
+        )?;
+        line += 1;
+    }
+
+    // Footer
+    queue!(
+        stdout,
+        MoveTo(0, line),
         Print(""),
-        MoveTo(0, 8),
-        SetForegroundColor(Color::Rgb { r: 0, g: 255, b: 0 }),
-        Print(format!("     Standard Pot [{} - {}]: Current value: {:.4}", OUTPUT_MIN, OUTPUT_MAX, output)),
-        ResetColor,
-        MoveTo(0, 9),
-        Print(format!("     {}", render_bar(
-            output,
-            OUTPUT_MIN,
-            OUTPUT_MAX,
-            BAR_WIDTH,
-            Color::Rgb { r: 0, g: 255, b: 0 },
-            Color::Rgb { r: 0, g: 200, b: 255 }  // Cyan indicator
-        ))),
-        MoveTo(0, 10),
-        Print(""),
-        MoveTo(0, 11),
-        SetForegroundColor(Color::Rgb { r: 255, g: 0, b: 255 }),
-        Print(format!("     Reversed Pot [{} - {}]: Current value: {:.2}", REVERSED_MIN, REVERSED_MAX, reversed_output)),
-        ResetColor,
-        MoveTo(0, 12),
-        Print(format!("     {}", render_bar(
-            reversed_output,
-            REVERSED_MAX,
-            REVERSED_MIN,
-            BAR_WIDTH,
-            Color::Rgb { r: 255, g: 0, b: 255 },
-            Color::Rgb { r: 255, g: 100, b: 100 }  // Pink indicator
-        ))),
-        MoveTo(0, 13),
-        Print(""),
-        MoveTo(0, 14),
+    )?;
+    line += 1;
+
+    queue!(
+        stdout,
+        MoveTo(0, line),
         SetForegroundColor(Color::Blue),
         Print("╠════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"),
-        MoveTo(0, 15),
+    )?;
+    line += 1;
+
+    queue!(
+        stdout,
+        MoveTo(0, line),
         Print("║  Controls: ← → arrows to adjust  |  q or Esc to quit                                                       ║"),
-        MoveTo(0, 16),
+    )?;
+    line += 1;
+
+    queue!(
+        stdout,
+        MoveTo(0, line),
         Print("╚════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"),
         ResetColor,
     )?;
