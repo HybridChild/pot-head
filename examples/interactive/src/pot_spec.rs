@@ -62,7 +62,7 @@ pub const STANDARD_POT: PotSpec<u16, f32> = PotSpec {
         processed_indicator_color: Color::Rgb { r: 0, g: 200, b: 255 },
         physical_indicator_color: Color::Rgb { r: 255, g: 165, b: 0 },
     },
-    precision: 4,
+    precision: 3,
 };
 
 pub const REVERSED_POT: PotSpec<u16, f32> = PotSpec {

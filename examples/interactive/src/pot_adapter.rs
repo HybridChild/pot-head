@@ -76,11 +76,25 @@ where
     }
 
     fn get_render_info(&self) -> RenderInfo {
+        // Get the last input value by getting it from the pot's config and last state
+        // We'll store it when we update
         let (output_min, output_max) = self.output_range();
 
+        let input_min_f = self.input_min.as_();
+        let input_max_f = self.input_max.as_();
         let output_min_f = output_min.as_();
         let output_max_f = output_max.as_();
         let output_f = self.last_output.as_();
+
+        // Calculate the current input value from the output (reverse the mapping)
+        // This works because we know: output = output_min + normalized * (output_max - output_min)
+        // So: normalized = (output - output_min) / (output_max - output_min)
+        let normalized = if output_max_f != output_min_f {
+            (output_f - output_min_f) / (output_max_f - output_min_f)
+        } else {
+            0.5
+        };
+        let input_f = input_min_f + normalized * (input_max_f - input_min_f);
 
         // Determine display range (always ascending for the bar)
         let (display_min_f, display_max_f) = if output_min_f < output_max_f {
@@ -103,8 +117,20 @@ where
             (output_max, output_min)
         };
 
+        // Determine input precision (0 for integers, same as output for floats)
+        let input_precision = if input_min_f.fract() == 0.0 && input_max_f.fract() == 0.0 {
+            0
+        } else {
+            self.precision
+        };
+
         RenderInfo {
             label: self.label.to_string(),
+            input_value: format!("{:.prec$}", input_f, prec = input_precision),
+            input_range: (
+                format!("{:.prec$}", input_min_f, prec = input_precision),
+                format!("{:.prec$}", input_max_f, prec = input_precision),
+            ),
             output_value: format!("{:.prec$}", output_f, prec = self.precision),
             output_range: (
                 format!("{:.prec$}", display_min.as_(), prec = self.precision),

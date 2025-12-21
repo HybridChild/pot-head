@@ -3,6 +3,8 @@ use crate::color_scheme::ColorScheme;
 /// Information needed to render a pot in the UI
 pub struct RenderInfo {
     pub label: String,
+    pub input_value: String,         // Formatted input value
+    pub input_range: (String, String), // (min, max) formatted for display
     pub output_value: String,        // Formatted output value
     pub output_range: (String, String), // (min, max) formatted for display
     pub output_position: f32,        // Normalized 0.0-1.0 for bar rendering

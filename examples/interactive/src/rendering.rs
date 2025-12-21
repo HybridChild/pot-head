@@ -113,54 +113,6 @@ pub fn render(state: &mut AppState) -> Result<()> {
 
     let mut line = 5;
 
-    // Render input (normalized 0.0 - 1.0)
-    queue!(
-        stdout,
-        MoveTo(0, line),
-        SetForegroundColor(Color::Rgb {
-            r: 255,
-            g: 255,
-            b: 0
-        }),
-        Print(format!(
-            "     Input [0.0 - 1.0]: Current value: {:.2}",
-            state.normalized_input
-        )),
-        ResetColor,
-    )?;
-    line += 1;
-
-    queue!(
-        stdout,
-        MoveTo(0, line),
-        Print(format!(
-            "     {}",
-            render_bar(
-                state.normalized_input,
-                state.normalized_input, // Physical and processed are the same for raw input
-                0.0,
-                1.0,
-                BAR_WIDTH,
-                Color::Rgb {
-                    r: 255,
-                    g: 255,
-                    b: 0
-                },
-                Color::Rgb {
-                    r: 200,
-                    g: 200,
-                    b: 0
-                }, // Processed indicator (darker yellow)
-                Color::Rgb {
-                    r: 255,
-                    g: 165,
-                    b: 0
-                } // Physical indicator (orange)
-            )
-        )),
-    )?;
-    line += 1;
-
     // Render each pot
     for (index, pot) in state.pots.iter_mut().enumerate() {
         let is_selected = index == state.selected_pot_index;
@@ -184,14 +136,35 @@ pub fn render(state: &mut AppState) -> Result<()> {
             MoveTo(0, line),
             SetForegroundColor(colors.bar_color),
             Print(format!(
-                "   {} {} [{} - {}]: Current value: {}",
+                "   {} {}",
                 selection_marker,
                 info.label,
+            )),
+            ResetColor,
+        )?;
+        line += 1;
+
+        queue!(
+            stdout,
+            MoveTo(0, line),
+            Print(format!(
+                "     Input  [{} - {}]: {}",
+                info.input_range.0,
+                info.input_range.1,
+                info.input_value,
+            )),
+        )?;
+        line += 1;
+
+        queue!(
+            stdout,
+            MoveTo(0, line),
+            Print(format!(
+                "     Output [{} - {}]: {}",
                 info.output_range.0,
                 info.output_range.1,
                 info.output_value,
             )),
-            ResetColor,
         )?;
         line += 1;
 
