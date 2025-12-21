@@ -5,6 +5,7 @@ use crate::state::State;
 
 pub struct PotHead<TIn, TOut = TIn> {
     config: Config<TIn, TOut>,
+    #[allow(dead_code)] // Will be used when filters and other stateful features are added
     state: State,
 }
 

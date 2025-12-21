@@ -8,18 +8,6 @@ pub struct ColorScheme {
 }
 
 impl ColorScheme {
-    pub fn new(
-        bar_color: Color,
-        processed_indicator_color: Color,
-        physical_indicator_color: Color,
-    ) -> Self {
-        Self {
-            bar_color,
-            processed_indicator_color,
-            physical_indicator_color,
-        }
-    }
-
     pub fn dimmed(&self) -> ColorScheme {
         ColorScheme {
             bar_color: dim_color(self.bar_color),

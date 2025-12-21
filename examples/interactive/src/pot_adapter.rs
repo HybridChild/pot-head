@@ -137,13 +137,7 @@ where
                 format!("{:.prec$}", display_max.as_(), prec = self.precision),
             ),
             output_position,
-            colors: self.color_scheme,
-            precision: self.precision,
         }
-    }
-
-    fn label(&self) -> &str {
-        self.label
     }
 
     fn active_color_scheme(&self, is_selected: bool) -> ColorScheme {
