@@ -31,6 +31,7 @@ where
         input_max: TIn,
     ) -> Self {
         // Initialize last_output to the minimum of the output range
+        // This will be properly set when update() is first called
         let config = pot.config();
         let initial_output = if config.output_min.as_() < config.output_max.as_() {
             config.output_min

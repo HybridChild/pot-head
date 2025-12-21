@@ -15,14 +15,20 @@ pub struct AppState {
 
 impl AppState {
     pub fn new() -> Result<Self> {
-        let pots: Vec<Box<dyn RenderablePot>> = vec![
+        let mut pots: Vec<Box<dyn RenderablePot>> = vec![
             STANDARD_POT.build()?,
             REVERSED_POT.build()?,
             INTEGER_POT.build()?,
         ];
 
+        // Initialize all pots with centered input
+        let initial_input = 0.5;
+        for pot in pots.iter_mut() {
+            pot.update(initial_input);
+        }
+
         Ok(Self {
-            normalized_input: 0.0,
+            normalized_input: initial_input, // Start centered
             pots,
             selected_pot_index: 0,
             running: true,
