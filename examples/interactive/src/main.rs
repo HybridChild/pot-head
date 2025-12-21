@@ -1,6 +1,7 @@
 mod app_state;
 mod color_scheme;
 mod pot_display;
+mod pot_spec;
 mod rendering;
 
 use crossterm::{
