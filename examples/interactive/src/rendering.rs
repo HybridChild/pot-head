@@ -179,8 +179,8 @@ pub fn render(state: &mut AppState) -> Result<()> {
         // Calculate the physical position (normalized input in the output range)
         let input_normalized = (state.input_value - AppState::input_min()) as f32
             / (AppState::input_max() - AppState::input_min()) as f32;
-        let physical_position = pot_display.range_display.0
-            + input_normalized * (pot_display.range_display.1 - pot_display.range_display.0);
+        let (output_min, output_max) = pot_display.output_range();
+        let physical_position = output_min + input_normalized * (output_max - output_min);
 
         queue!(stdout, MoveTo(0, line), Print(""),)?;
         line += 1;
@@ -196,8 +196,8 @@ pub fn render(state: &mut AppState) -> Result<()> {
                 "   {} {} [{} - {}]: Current value: {:.prec$}",
                 selection_marker,
                 pot_display.label,
-                pot_display.range_display.0,
-                pot_display.range_display.1,
+                output_min,
+                output_max,
                 output,
                 prec = pot_display.precision
             )),
@@ -213,8 +213,8 @@ pub fn render(state: &mut AppState) -> Result<()> {
                 render_bar(
                     output,            // Processed position (output from PotHead)
                     physical_position, // Physical position (normalized input)
-                    pot_display.range_display.1.min(pot_display.range_display.0),
-                    pot_display.range_display.1.max(pot_display.range_display.0),
+                    output_max.min(output_min),
+                    output_max.max(output_min),
                     BAR_WIDTH,
                     colors.bar_color,
                     colors.processed_indicator_color,

@@ -23,8 +23,8 @@ impl ColorScheme {
     pub fn dimmed(&self) -> ColorScheme {
         ColorScheme {
             bar_color: dim_color(self.bar_color),
-            processed_indicator_color: dim_color(self.processed_indicator_color),
-            physical_indicator_color: dim_color(self.physical_indicator_color),
+            processed_indicator_color: self.processed_indicator_color,
+            physical_indicator_color: self.physical_indicator_color,
         }
     }
 }

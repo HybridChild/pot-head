@@ -22,6 +22,10 @@ where
         })
     }
 
+    pub fn config(&self) -> &Config<TIn, TOut> {
+        &self.config
+    }
+
     pub fn update(&mut self, input: TIn) -> TOut {
         // Normalize input to 0.0..1.0
         let normalized = self.normalize_input(input);

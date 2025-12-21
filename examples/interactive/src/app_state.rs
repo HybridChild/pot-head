@@ -6,8 +6,8 @@ use std::io::Result;
 
 // Input range (simulating ADC values)
 const INPUT_MIN: u16 = 0;
-const INPUT_MAX: u16 = 4095;
-const STEP_SIZE: u16 = 50;
+const INPUT_MAX: u16 = 99;
+const STEP_SIZE: u16 = 1;
 
 // Standard potmeter output range
 const OUTPUT_MIN: f32 = 0.0;
@@ -46,7 +46,6 @@ impl AppState {
         pots.push(PotDisplay::new(
             pot_standard,
             "Standard Pot",
-            (OUTPUT_MIN, OUTPUT_MAX),
             ColorScheme::new(
                 Color::Rgb { r: 0, g: 255, b: 0 },
                 Color::Rgb {
@@ -81,7 +80,6 @@ impl AppState {
         pots.push(PotDisplay::new(
             pot_reversed,
             "Reversed Pot",
-            (REVERSED_MIN, REVERSED_MAX),
             ColorScheme::new(
                 Color::Rgb {
                     r: 255,

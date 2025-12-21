@@ -4,7 +4,6 @@ use pot_head::PotHead;
 pub struct PotDisplay {
     pub pot: PotHead<u16, f32>,
     pub label: &'static str,
-    pub range_display: (f32, f32),
     pub color_scheme: ColorScheme,
     pub precision: usize,
     pub last_output: f32,
@@ -14,21 +13,25 @@ impl PotDisplay {
     pub fn new(
         pot: PotHead<u16, f32>,
         label: &'static str,
-        range_display: (f32, f32),
         color_scheme: ColorScheme,
         precision: usize,
     ) -> Self {
-        // Initialize last_output to the minimum of the range
-        let initial_output = range_display.0.min(range_display.1);
+        // Initialize last_output to the minimum of the output range
+        let config = pot.config();
+        let initial_output = config.output_min.min(config.output_max);
 
         Self {
             pot,
             label,
-            range_display,
             color_scheme,
             precision,
             last_output: initial_output,
         }
+    }
+
+    pub fn output_range(&self) -> (f32, f32) {
+        let config = self.pot.config();
+        (config.output_min, config.output_max)
     }
 
     pub fn update(&mut self, input: u16) -> f32 {
