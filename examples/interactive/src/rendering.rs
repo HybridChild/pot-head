@@ -5,7 +5,7 @@ use crossterm::{
     style::{Color, Print, ResetColor, SetForegroundColor},
     terminal::{Clear, ClearType},
 };
-use std::io::{Result, Write, stdout};
+use std::io::{stdout, Result, Write};
 
 // Bar properties
 const BAR_WIDTH: usize = 100;
@@ -113,7 +113,7 @@ pub fn render(state: &mut AppState) -> Result<()> {
 
     let mut line = 5;
 
-    // Render input
+    // Render input (normalized 0.0 - 1.0)
     queue!(
         stdout,
         MoveTo(0, line),
@@ -123,10 +123,8 @@ pub fn render(state: &mut AppState) -> Result<()> {
             b: 0
         }),
         Print(format!(
-            "     Input [{} - {}]: Current value: {}",
-            AppState::input_min(),
-            AppState::input_max(),
-            state.input_value
+            "     Input [0.0 - 1.0]: Current value: {:.2}",
+            state.normalized_input
         )),
         ResetColor,
     )?;
@@ -138,10 +136,10 @@ pub fn render(state: &mut AppState) -> Result<()> {
         Print(format!(
             "     {}",
             render_bar(
-                state.input_value as f32,
-                state.input_value as f32, // Physical and processed are the same for raw input
-                AppState::input_min() as f32,
-                AppState::input_max() as f32,
+                state.normalized_input,
+                state.normalized_input, // Physical and processed are the same for raw input
+                0.0,
+                1.0,
                 BAR_WIDTH,
                 Color::Rgb {
                     r: 255,
@@ -164,32 +162,16 @@ pub fn render(state: &mut AppState) -> Result<()> {
     line += 1;
 
     // Render each pot
-    for (index, pot_display) in state.pots.iter_mut().enumerate() {
+    for (index, pot) in state.pots.iter_mut().enumerate() {
         let is_selected = index == state.selected_pot_index;
 
         // Only update the selected pot
-        let output = if is_selected {
-            pot_display.update(state.input_value)
-        } else {
-            pot_display.last_output // Use cached output for non-selected pots
-        };
+        if is_selected {
+            pot.update(state.normalized_input);
+        }
 
-        let colors = pot_display.active_color_scheme(is_selected);
-
-        let (output_min, output_max) = pot_display.output_range();
-
-        // For display, show range in ascending order
-        let (display_min, display_max) = if output_min < output_max {
-            (output_min, output_max)
-        } else {
-            (output_max, output_min)
-        };
-
-        // Physical position: normalized input position in the display range
-        // Always left-to-right regardless of output mapping
-        let input_normalized = (state.input_value - AppState::input_min()) as f32
-            / (AppState::input_max() - AppState::input_min()) as f32;
-        let physical_position = display_min + input_normalized * (display_max - display_min);
+        let info = pot.get_render_info();
+        let colors = pot.active_color_scheme(is_selected);
 
         queue!(stdout, MoveTo(0, line), Print(""),)?;
         line += 1;
@@ -202,17 +184,19 @@ pub fn render(state: &mut AppState) -> Result<()> {
             MoveTo(0, line),
             SetForegroundColor(colors.bar_color),
             Print(format!(
-                "   {} {} [{} - {}]: Current value: {:.prec$}",
+                "   {} {} [{} - {}]: Current value: {}",
                 selection_marker,
-                pot_display.label,
-                display_min,
-                display_max,
-                output,
-                prec = pot_display.precision
+                info.label,
+                info.output_range.0,
+                info.output_range.1,
+                info.output_value,
             )),
             ResetColor,
         )?;
         line += 1;
+
+        // Physical position is the normalized input mapped to the display range
+        let physical_position = state.normalized_input;
 
         queue!(
             stdout,
@@ -220,10 +204,10 @@ pub fn render(state: &mut AppState) -> Result<()> {
             Print(format!(
                 "     {}",
                 render_bar(
-                    output,            // Processed position (output from PotHead)
-                    physical_position, // Physical position (normalized input)
-                    output_max.min(output_min),
-                    output_max.max(output_min),
+                    info.output_position, // Processed position (normalized output)
+                    physical_position,    // Physical position (normalized input)
+                    0.0,
+                    1.0,
                     BAR_WIDTH,
                     colors.bar_color,
                     colors.processed_indicator_color,

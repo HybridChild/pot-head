@@ -1,28 +1,27 @@
-use crate::pot_display::PotDisplay;
-use crate::pot_spec::{REVERSED_POT, STANDARD_POT};
+use crate::pot_spec::{INTEGER_POT, REVERSED_POT, STANDARD_POT};
+use crate::renderable_pot::RenderablePot;
 use std::io::Result;
 
-// Input range (simulating ADC values)
-const INPUT_MIN: u16 = 0;
-const INPUT_MAX: u16 = 99;
-const STEP_SIZE: u16 = 1;
+// Normalized input range (always 0.0 to 1.0)
+const STEP_SIZE: f32 = 0.01; // 1% steps
 
 pub struct AppState {
-    pub input_value: u16,
-    pub pots: Vec<PotDisplay>,
+    pub normalized_input: f32, // Always 0.0 to 1.0
+    pub pots: Vec<Box<dyn RenderablePot>>,
     pub selected_pot_index: usize,
     pub running: bool,
 }
 
 impl AppState {
     pub fn new() -> Result<Self> {
-        let pots = vec![
-            STANDARD_POT.build(INPUT_MIN, INPUT_MAX)?,
-            REVERSED_POT.build(INPUT_MIN, INPUT_MAX)?,
+        let pots: Vec<Box<dyn RenderablePot>> = vec![
+            STANDARD_POT.build()?,
+            REVERSED_POT.build()?,
+            INTEGER_POT.build()?,
         ];
 
         Ok(Self {
-            input_value: INPUT_MIN,
+            normalized_input: 0.0,
             pots,
             selected_pot_index: 0,
             running: true,
@@ -30,11 +29,11 @@ impl AppState {
     }
 
     pub fn increase_input(&mut self) {
-        self.input_value = self.input_value.saturating_add(STEP_SIZE).min(INPUT_MAX);
+        self.normalized_input = (self.normalized_input + STEP_SIZE).min(1.0);
     }
 
     pub fn decrease_input(&mut self) {
-        self.input_value = self.input_value.saturating_sub(STEP_SIZE).max(INPUT_MIN);
+        self.normalized_input = (self.normalized_input - STEP_SIZE).max(0.0);
     }
 
     pub fn select_next_pot(&mut self) {
@@ -51,13 +50,5 @@ impl AppState {
                 self.selected_pot_index - 1
             };
         }
-    }
-
-    pub fn input_min() -> u16 {
-        INPUT_MIN
-    }
-
-    pub fn input_max() -> u16 {
-        INPUT_MAX
     }
 }

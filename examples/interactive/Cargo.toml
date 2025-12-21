@@ -7,3 +7,4 @@ publish = false
 [dependencies]
 pot-head = { path = "../.." }
 crossterm = "0.29"
+num-traits = { version = "0.2", default-features = false }

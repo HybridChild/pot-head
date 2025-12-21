@@ -1,7 +1,8 @@
 mod app_state;
 mod color_scheme;
-mod pot_display;
+mod pot_adapter;
 mod pot_spec;
+mod renderable_pot;
 mod rendering;
 
 use crossterm::{
