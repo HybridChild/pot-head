@@ -37,6 +37,8 @@ fn handle_event(state: &mut AppState, event: Event) {
             KeyCode::Right => state.increase_input(),
             KeyCode::Up => state.select_prev_pot(),
             KeyCode::Down => state.select_next_pot(),
+            KeyCode::Char('-') => state.decrease_noise(),
+            KeyCode::Char('+') => state.increase_noise(),
             KeyCode::Char('q') | KeyCode::Esc => state.running = false,
             _ => {}
         }

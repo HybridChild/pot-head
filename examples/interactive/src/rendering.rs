@@ -113,13 +113,56 @@ pub fn render(state: &mut AppState) -> Result<()> {
 
     let mut line = 5;
 
+    // Render noise control section
+    queue!(stdout, MoveTo(0, line), Print(""),)?;
+    line += 1;
+
+    queue!(
+        stdout,
+        MoveTo(0, line),
+        SetForegroundColor(Color::Yellow),
+        Print("   Noise Level:"),
+        ResetColor,
+    )?;
+    line += 1;
+
+    // Render noise level bar (simple bar without indicators)
+    let noise_bar_width = BAR_WIDTH;
+    let noise_filled = (state.noise_level * (noise_bar_width - 2) as f32).round() as usize;
+    let mut noise_bar = String::with_capacity(noise_bar_width + 50);
+    noise_bar.push_str("\x1b[38;2;255;255;0m"); // Yellow
+    noise_bar.push('|');
+    for i in 0..(noise_bar_width - 2) {
+        if i < noise_filled {
+            noise_bar.push('█');
+        } else {
+            noise_bar.push('-');
+        }
+    }
+    noise_bar.push('|');
+    noise_bar.push_str("\x1b[0m");
+
+    queue!(
+        stdout,
+        MoveTo(0, line),
+        Print(format!(
+            "     {} {:.0}%",
+            noise_bar,
+            state.noise_level * 100.0
+        )),
+    )?;
+    line += 1;
+
+    // Get noisy input once before the loop to avoid borrow checker issues
+    let noisy_input = state.get_noisy_input();
+
     // Render each pot
     for (index, pot) in state.pots.iter_mut().enumerate() {
         let is_selected = index == state.selected_pot_index;
 
-        // Only update the selected pot
+        // Only update the selected pot with noisy input
         if is_selected {
-            pot.update(state.normalized_input);
+            pot.update(noisy_input);
         }
 
         let info = pot.get_render_info();
@@ -210,7 +253,7 @@ pub fn render(state: &mut AppState) -> Result<()> {
         stdout,
         MoveTo(0, line),
         Print(
-            "║  Controls: ← → adjust input  |  ↑ ↓ select pot  |  q or Esc to quit    ║"
+            "║  ← → adjust input  |  + - noise  |  ↑ ↓ select pot  |  q/Esc quit       ║"
         ),
     )?;
     line += 1;
