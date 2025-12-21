@@ -1,9 +1,10 @@
 use crate::pot_spec::{INTEGER_POT, REVERSED_POT, STANDARD_POT};
 use crate::renderable_pot::RenderablePot;
+use crate::rendering::BAR_WIDTH;
 use std::io::Result;
 
-// Normalized input range (always 0.0 to 1.0)
-const STEP_SIZE: f32 = 0.01; // 1% steps
+// Step size matches bar width so each arrow key press moves one position on the bar
+const STEP_SIZE: f32 = 1.0 / BAR_WIDTH as f32;
 
 pub struct AppState {
     pub normalized_input: f32, // Always 0.0 to 1.0

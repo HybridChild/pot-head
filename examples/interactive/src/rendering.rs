@@ -8,7 +8,7 @@ use crossterm::{
 use std::io::{stdout, Result, Write};
 
 // Bar properties
-const BAR_WIDTH: usize = 100;
+pub const BAR_WIDTH: usize = 64;
 
 pub fn render_bar(
     processed_value: f32,
@@ -65,7 +65,7 @@ pub fn render_bar(
             bar.push_str(&set_color(bar_color));
         } else if is_processed_center {
             bar.push_str(&set_color(processed_indicator_color));
-            bar.push(' ');
+            bar.push('◯');
             bar.push_str(&set_color(bar_color));
         } else if is_processed_right {
             bar.push_str(&set_color(processed_indicator_color));
@@ -96,15 +96,15 @@ pub fn render(state: &mut AppState) -> Result<()> {
         MoveTo(0, 1),
         SetForegroundColor(Color::Blue),
         Print(
-            "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+            "╔════════════════════════════════════════════════════════════════════════╗"
         ),
         MoveTo(0, 2),
         Print(
-            "║                                        pot-head Interactive Demo                                           ║"
+            "║                      pot-head Interactive Demo                         ║"
         ),
         MoveTo(0, 3),
         Print(
-            "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+            "╠════════════════════════════════════════════════════════════════════════╣"
         ),
         ResetColor,
         MoveTo(0, 4),
@@ -125,6 +125,7 @@ pub fn render(state: &mut AppState) -> Result<()> {
         let info = pot.get_render_info();
         let colors = pot.active_color_scheme(is_selected);
 
+        // Add empty line
         queue!(stdout, MoveTo(0, line), Print(""),)?;
         line += 1;
 
@@ -200,7 +201,7 @@ pub fn render(state: &mut AppState) -> Result<()> {
         MoveTo(0, line),
         SetForegroundColor(Color::Blue),
         Print(
-            "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+            "╠════════════════════════════════════════════════════════════════════════╣"
         ),
     )?;
     line += 1;
@@ -209,7 +210,7 @@ pub fn render(state: &mut AppState) -> Result<()> {
         stdout,
         MoveTo(0, line),
         Print(
-            "║  Controls: ← → adjust input  |  ↑ ↓ select pot  |  q or Esc to quit                                        ║"
+            "║  Controls: ← → adjust input  |  ↑ ↓ select pot  |  q or Esc to quit    ║"
         ),
     )?;
     line += 1;
@@ -218,7 +219,7 @@ pub fn render(state: &mut AppState) -> Result<()> {
         stdout,
         MoveTo(0, line),
         Print(
-            "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+            "╚════════════════════════════════════════════════════════════════════════╝"
         ),
         ResetColor,
     )?;
