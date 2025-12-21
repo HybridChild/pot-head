@@ -176,11 +176,20 @@ pub fn render(state: &mut AppState) -> Result<()> {
 
         let colors = pot_display.active_color_scheme(is_selected);
 
-        // Calculate the physical position (normalized input in the output range)
+        let (output_min, output_max) = pot_display.output_range();
+
+        // For display, show range in ascending order
+        let (display_min, display_max) = if output_min < output_max {
+            (output_min, output_max)
+        } else {
+            (output_max, output_min)
+        };
+
+        // Physical position: normalized input position in the display range
+        // Always left-to-right regardless of output mapping
         let input_normalized = (state.input_value - AppState::input_min()) as f32
             / (AppState::input_max() - AppState::input_min()) as f32;
-        let (output_min, output_max) = pot_display.output_range();
-        let physical_position = output_min + input_normalized * (output_max - output_min);
+        let physical_position = display_min + input_normalized * (display_max - display_min);
 
         queue!(stdout, MoveTo(0, line), Print(""),)?;
         line += 1;
@@ -196,8 +205,8 @@ pub fn render(state: &mut AppState) -> Result<()> {
                 "   {} {} [{} - {}]: Current value: {:.prec$}",
                 selection_marker,
                 pot_display.label,
-                output_min,
-                output_max,
+                display_min,
+                display_max,
                 output,
                 prec = pot_display.precision
             )),
