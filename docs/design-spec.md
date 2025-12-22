@@ -29,7 +29,7 @@ This crate explicitly does **NOT**:
 - Integrate with HAL crates (user's responsibility)
 - Provide async/await support (synchronous function calls only)
 - Handle interrupts (user calls `update()` from wherever)
-- Allocate memory dynamically (everything stack-based)
+- Allocate memory dynamically (everything stack or flash-based)
 - Provide hardware-specific optimizations
 
 ---

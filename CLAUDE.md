@@ -137,7 +137,7 @@ let mut pot = PotHead::from_static(&VOLUME_CONFIG);
 
 - All public APIs need doc comments
 - Feature-gated items should document the required feature
-- Examples for common use cases
+- Demonstrate common use cases in interactive example
 - Safety notes for `unsafe` code (if any)
 - Performance characteristics (especially for filters)
 
@@ -168,11 +168,11 @@ heapless = { version = "0.8", optional = true }    # For moving average buffer
 ## Development Workflow
 
 1. **Read the design spec** - Understand the complete picture before implementing
-2. **Start with core types** - `Config`, `State`, `VirtualPot` skeleton
+2. **Start with core types** - `Config`, `State`, `PotHead` skeleton
 3. **Implement features incrementally** - One feature module at a time
 4. **Test as you go** - Unit tests for each module
-5. **Examples validate API** - Write example code to verify ergonomics
-6. **Document thoroughly** - API docs with examples
+5. **Examples validate API** - Use interactive example to demonstrate features
+6. **Lean and clean Document** - Brief API docs. No verbose doc comments
 
 ## Questions During Implementation
 
