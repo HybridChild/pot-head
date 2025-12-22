@@ -257,7 +257,7 @@ pub fn render(state: &mut AppState) -> Result<()> {
         line += 1;
     }
 
-    // Footer
+    // Legend
     queue!(stdout, MoveTo(0, line), Print(""),)?;
     line += 1;
 
@@ -265,6 +265,35 @@ pub fn render(state: &mut AppState) -> Result<()> {
         stdout,
         MoveTo(0, line),
         SetForegroundColor(Color::Blue),
+        Print(
+            "╠════════════════════════════════════════════════════════════════════════╣"
+        ),
+    )?;
+    line += 1;
+
+    queue!(
+        stdout,
+        MoveTo(0, line),
+        Print("║  Legend:  "),
+        SetForegroundColor(Color::Rgb { r: 255, g: 165, b: 0 }),
+        Print("|"),
+        SetForegroundColor(Color::Blue),
+        Print(" Physical Input  "),
+        SetForegroundColor(Color::Rgb { r: 0, g: 200, b: 255 }),
+        Print("<◯>"),
+        SetForegroundColor(Color::Blue),
+        Print(" Processed Output  "),
+        SetForegroundColor(Color::Rgb { r: 150, g: 150, b: 150 }),
+        Print("┊"),
+        SetForegroundColor(Color::Blue),
+        Print(" Hyst threshold     ║"),
+    )?;
+    line += 1;
+
+    // Footer
+    queue!(
+        stdout,
+        MoveTo(0, line),
         Print(
             "╠════════════════════════════════════════════════════════════════════════╣"
         ),
