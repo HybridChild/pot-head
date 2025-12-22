@@ -6,9 +6,9 @@ All major design decisions for v0.1 have been resolved. The specification is com
 
 **Key Decisions:**
 1. **Numeric types**: Generic via `num-traits` with separate input/output types
-2. **Error handling**: Build-time validation + runtime clamping + debug assertions
-3. **API design**: Hybrid builder pattern and static ROM configs
-4. **Configuration storage**: Both owned (RAM) and borrowed (ROM) via `ConfigRef`
+2. **Error handling**: Const validation + runtime clamping + debug assertions
+3. **API design**: Static ROM configuration only (builder deferred to v0.2+)
+4. **Configuration storage**: Borrowed (ROM) configs via `&'static Config`
 5. **Feature gating**: Granular Cargo features for compile-time optimization
 
 **Features included in v0.1:**
@@ -49,9 +49,9 @@ This crate explicitly does **NOT**:
 | **Integer-only** (u8, u16, u32) | Simpler implementation<br>No FPU required<br>Guaranteed no_std | Limited to discrete values<br>Less flexible for output ranges<br>Harder to implement logarithmic curves |
 | **Fixed-point arithmetic** | Fractional values without FPU<br>Deterministic performance | Additional dependency (`fixed` crate)<br>Less familiar API for users<br>Conversion overhead |
 | **Single generic type** | Simple API<br>Supports both int and float | Forces same type for input and output<br>Wasteful conversions (ADC u16 → f32 → u16 PWM)<br>Prevents natural ADC→float normalization |
-| **Separate input/output types (chosen)** | Natural ADC→application mapping<br>Type-safe boundaries<br>Eliminates wasteful conversions<br>Builder infers types from ranges | Slightly more complex implementation<br>Two type parameters to manage |
+| **Separate input/output types (chosen)** | Natural ADC→application mapping<br>Type-safe boundaries<br>Eliminates wasteful conversions | Slightly more complex implementation<br>Two type parameters to manage |
 
-**Rationale:** The vast majority of embedded potentiometer applications follow the pattern: integer ADC input → normalized float processing → application-specific output. Supporting separate input/output types eliminates wasteful conversions that users would otherwise have to do manually, while the builder pattern's type inference makes this ergonomic.
+**Rationale:** The vast majority of embedded potentiometer applications follow the pattern: integer ADC input → normalized float processing → application-specific output. Supporting separate input/output types eliminates wasteful conversions that users would otherwise have to do manually.
 
 **Type Parameter Design:**
 
@@ -61,7 +61,7 @@ where
     TIn: Numeric,
     TOut: Numeric,
 {
-    config: ConfigRef<TIn, TOut>,
+    config: &'static Config<TIn, TOut>,
     state: State<TOut>,  // State tracks output type
 }
 ```
@@ -80,36 +80,19 @@ Input (TIn) → Normalize (f32) → Filter → Curve → Snap Zones → Denormal
 
 ```rust
 // Example 1: Same input/output type (simple case)
-// Type inference from builder - no explicit type parameters needed!
-let mut pot = PotHead::builder()
-    .input_range(0_u16..4095_u16)    // TIn inferred as u16
-    .output_range(0_u16..1000_u16)   // TOut inferred as u16
-    .build();
+static LED_CONFIG: Config<u16, u16> = Config {
+    input_min: 0,
+    input_max: 4095,
+    output_min: 0,
+    output_max: 1000,
+    curve: ResponseCurve::Linear,
+    // ... other config
+};
+
+let mut led_pot = PotHead::new(&LED_CONFIG);
 // Returns PotHead<u16, u16> (or just PotHead<u16> via default)
 
 // Example 2: ADC → normalized float (most common embedded pattern)
-let mut pot = PotHead::builder()
-    .input_range(0_u16..4095_u16)     // TIn = u16 (12-bit ADC)
-    .output_range(0.0_f32..1.0_f32)   // TOut = f32 (normalized)
-    .response_curve(ResponseCurve::Logarithmic)
-    .build();
-// Returns PotHead<u16, f32>
-// No wasteful conversions - ADC stays u16 until normalization
-
-// Example 3: Float ADC → integer PWM
-let mut pot = PotHead::builder()
-    .input_range(0.0_f32..3.3_f32)    // TIn = f32 (voltage from floating ADC)
-    .output_range(0_u16..65535_u16)   // TOut = u16 (16-bit PWM)
-    .build();
-// Returns PotHead<f32, u16>
-
-// Example 4: Explicit type parameters (when inference insufficient)
-let mut pot: PotHead<u16, f32> = PotHead::builder()
-    .input_range(0..4095)
-    .output_range(0.0..1.0)
-    .build();
-
-// Example 5: Static config with different types
 static VOLUME_CONFIG: Config<u16, f32> = Config {
     input_min: 0,
     input_max: 4095,
@@ -119,7 +102,22 @@ static VOLUME_CONFIG: Config<u16, f32> = Config {
     // ... other config
 };
 
-let mut volume_pot = PotHead::from_static(&VOLUME_CONFIG);
+let mut volume_pot = PotHead::new(&VOLUME_CONFIG);
+// Returns PotHead<u16, f32>
+// No wasteful conversions - ADC stays u16 until normalization
+
+// Example 3: Float ADC → integer PWM
+static PWM_CONFIG: Config<f32, u16> = Config {
+    input_min: 0.0,
+    input_max: 3.3,
+    output_min: 0,
+    output_max: 65535,
+    curve: ResponseCurve::Linear,
+    // ... other config
+};
+
+let mut pwm_pot = PotHead::new(&PWM_CONFIG);
+// Returns PotHead<f32, u16>
 ```
 
 **Implementation Notes:**
@@ -129,8 +127,6 @@ let mut volume_pot = PotHead::from_static(&VOLUME_CONFIG);
 2. **Trait Bounds:** Both `TIn` and `TOut` must implement `num_traits::Numeric` (or similar trait providing arithmetic operations and conversions).
 
 3. **Zero Overhead:** Type conversions only happen at boundaries (input normalization and output denormalization). Processing pipeline operates in single type.
-
-4. **Builder Inference:** The builder pattern automatically infers `TIn` and `TOut` from the types of range bounds, making the API ergonomic without explicit type annotations in most cases.
 
 **Why This Matters for Embedded:**
 
@@ -312,7 +308,7 @@ config.validate_snap_zones().expect("Snap zones must not overlap");
 
 ### 4. Error Handling Strategy
 
-#### Current Decision: Hybrid approach with build-time validation, runtime clamping, and debug assertions
+#### Current Decision: Const validation, runtime clamping, and debug assertions
 
 **Approach:** Multi-layered error handling that balances safety, performance, and developer experience
 
@@ -332,63 +328,49 @@ The `update()` method is called in tight loops (1-10ms intervals in embedded sys
 | **Always return Result** | Explicit error handling<br>Caller decides behavior | Runtime overhead every call<br>Verbose call sites<br>Unergonomic for hot path |
 | **Silent clamping only** | Zero overhead<br>Graceful degradation<br>Handles ADC glitches | Masks configuration bugs<br>Hard to debug<br>Silent failures |
 | **Debug assertions only** | Zero release overhead<br>Catches bugs in development | No safety net in production<br>Release builds can still crash |
-| **Hybrid (chosen)** | Catches errors early (build time)<br>Graceful runtime behavior<br>Debug aids during development<br>Zero overhead in release | Most complex implementation<br>Multiple code paths to maintain |
+| **Multi-layer (chosen)** | Catches errors early (const validation)<br>Graceful runtime behavior<br>Debug aids during development<br>Zero overhead in release | Multiple code paths to maintain |
 
-**Rationale:** Embedded systems require different error handling than typical Rust applications. We can't panic on bad input (ADC glitches happen), but we also can't afford runtime overhead on every `update()` call. The solution: validate once at build time, clamp at runtime, assert in debug mode.
+**Rationale:** Embedded systems require different error handling than typical Rust applications. We can't panic on bad input (ADC glitches happen), but we also can't afford runtime overhead on every `update()` call. The solution: validate at compile time with const functions, clamp at runtime, assert in debug mode.
 
 ---
 
 #### Implementation Strategy
 
-**Layer 1: Build-Time Validation (Primary Defense)**
+**Layer 1: Const Validation (Primary Defense)**
 
-Catch configuration errors when the `PotHead` is constructed:
+Validate configuration at compile time using const functions:
 
 ```rust
-impl<T> PotHeadBuilder<T> {
-    pub fn build(self) -> Result<PotHead<T>, ConfigError> {
-        // Validate ranges (prevents division by zero)
+impl<TIn, TOut> Config<TIn, TOut> {
+    /// Const helper to validate configuration at compile time.
+    pub const fn validate(&self) -> Result<(), &'static str> {
+        // Basic compile-time checks
         if self.input_min >= self.input_max {
-            return Err(ConfigError::InvalidInputRange {
-                min: self.input_min,
-                max: self.input_max,
-            });
+            return Err("Invalid input range: min >= max");
         }
-
         if self.output_min >= self.output_max {
-            return Err(ConfigError::InvalidOutputRange {
-                min: self.output_min,
-                max: self.output_max,
-            });
+            return Err("Invalid output range: min >= max");
         }
-
-        // Validate hysteresis configuration
-        #[cfg(feature = "hysteresis-schmitt")]
-        if let HysteresisMode::SchmittTrigger { rising, falling } = self.hysteresis {
-            if rising <= falling {
-                return Err(ConfigError::InvalidSchmittThresholds { rising, falling });
-            }
-        }
-
-        // Validate snap zones don't overlap (optional)
-        if self.validate_snap_zones {
-            self.validate_snap_zones()?;
-        }
-
-        Ok(PotHead {
-            config: ConfigRef::Owned(self.into_config()),
-            state: State::default(),
-        })
+        Ok(())
     }
 }
 
-pub enum ConfigError {
-    InvalidInputRange { min: T, max: T },
-    InvalidOutputRange { min: T, max: T },
-    InvalidSchmittThresholds { rising: T, falling: T },
-    OverlappingSnapZones { zone1: SnapZone<T>, zone2: SnapZone<T> },
-    InvalidFilterWindow { window_size: usize },
-}
+// Usage with static configs:
+static VOLUME_CONFIG: Config<u16, f32> = Config {
+    input_min: 0,
+    input_max: 4095,
+    output_min: 0.0,
+    output_max: 1.0,
+    // ... rest of config
+};
+
+// Validate at compile time (requires const evaluation)
+const _: () = {
+    match VOLUME_CONFIG.validate() {
+        Ok(()) => {},
+        Err(e) => panic!("{}", e),  // Compile error if config invalid
+    }
+};
 ```
 
 **Layer 2: Runtime Input Clamping (Graceful Degradation)**
@@ -493,57 +475,17 @@ pub enum RuntimeError {
 
 ---
 
-#### Const Validation for Static Configs
-
-For ROM-based configurations, we provide const validation helpers:
-
-```rust
-impl<T> Config<T> {
-    /// Const helper to validate configuration at compile time.
-    /// Note: Requires const assertions (may need const_panic or const_trait_impl features)
-    pub const fn validate(&self) -> Result<(), &'static str> {
-        // Basic compile-time checks
-        if self.input_min >= self.input_max {
-            return Err("Invalid input range: min >= max");
-        }
-        if self.output_min >= self.output_max {
-            return Err("Invalid output range: min >= max");
-        }
-        Ok(())
-    }
-}
-
-// Usage with static configs:
-static VOLUME_CONFIG: Config<u16, f32> = Config {
-    input_min: 0,
-    input_max: 4095,
-    output_min: 0.0,
-    output_max: 1.0,
-    // ... rest of config
-};
-
-// Validate at compile time (requires const evaluation)
-const _: () = {
-    match VOLUME_CONFIG.validate() {
-        Ok(()) => {},
-        Err(e) => panic!("{}", e),  // Compile error if config invalid
-    }
-};
-```
-
----
-
 #### Error Handling Summary
 
 | Error Type | Detection | Handling | Performance Impact |
 |------------|-----------|----------|-------------------|
-| **Invalid ranges** | Build time | Return `Err(ConfigError)` from `build()` | Zero (fails before runtime) |
-| **Overlapping snap zones** | Build time (optional) | Return `Err(ConfigError)` if validation enabled | Zero (one-time check) |
+| **Invalid ranges** | Compile time | Const validation with compile error | Zero (fails at compile time) |
+| **Overlapping snap zones** | Optional (const fn) | Const validation helper | Zero (compile-time check) |
 | **Out-of-range input** | Runtime | Clamp to valid range | Minimal (1 comparison) |
 | **Numeric overflow** | Debug only | Panic in debug, wrap in release | Zero in release |
-| **Division by zero** | Build time | Prevented by range validation | Zero (impossible after validation) |
+| **Division by zero** | Compile time | Prevented by const validation | Zero (impossible after validation) |
 
-**Key Principle:** Error handling moves left - catch errors as early as possible (build time > startup > debug > runtime), minimizing production overhead while maximizing safety.
+**Key Principle:** Error handling moves left - catch errors as early as possible (compile time > debug > runtime), minimizing production overhead while maximizing safety.
 
 ---
 
@@ -850,47 +792,39 @@ Professional equipment (DAW controllers, digital mixers, synthesizers) universal
 
 ### 7. API Design
 
-#### Current Decision: Hybrid approach with both builder pattern and static configuration
+#### Current Decision: Static ROM configuration only (builder deferred to v0.2+)
 
-**Approach:** Support both fluent builder API (for flexibility) and static ROM-based configuration (for resource-constrained systems)
+**Approach:** Use static ROM-based configuration exclusively in v0.1, with const validation to catch errors at compile time.
 
 **Alternatives Considered:**
 
 | Approach | Pros | Cons |
 |----------|------|------|
-| **Configuration struct** | Explicit parameter passing<br>Configuration is serializable<br>Can be const | Less discoverable<br>Verbose initialization<br>No type safety on methods |
+| **Configuration struct (chosen)** | Explicit parameter passing<br>Configuration is serializable<br>Can be const<br>Zero RAM overhead for config<br>Compile-time validation | More verbose than builder<br>Less discoverable without IDE support |
 | **Const generic builder** | Zero-cost abstraction<br>Compile-time validation<br>No runtime storage | Inflexible after initialization<br>Complex compile errors<br>Can't adjust thresholds at runtime<br>Code duplication for each unique config |
-| **Builder pattern only** | Fluent, discoverable API<br>Flexible configuration<br>Clear method names | Config stored in RAM<br>Not optimal for ROM-constrained systems |
-| **Hybrid (chosen)** | Best of both worlds<br>User chooses based on constraints<br>Config can live in ROM or RAM | Slightly larger API surface |
+| **Builder pattern** | Fluent, discoverable API<br>Flexible configuration<br>Clear method names | Config stored in RAM<br>Not optimal for ROM-constrained systems<br>Deferred to v0.2+ |
 
-**Rationale:** Different embedded systems have different constraints. The hybrid approach allows:
-- **ROM-critical systems** (many pots, limited flash): Use static configs in ROM with shared code
-- **RAM-critical systems** (few pots, limited RAM): Use builder pattern for minimal per-instance overhead
-- **Flexible systems**: Use builder pattern for runtime reconfiguration
+**Rationale:** Embedded systems prioritize minimal RAM usage and compile-time guarantees. Static configurations in ROM (flash memory) provide:
+- **Zero config RAM overhead**: Only runtime state lives in RAM
+- **Compile-time validation**: Invalid configs caught during compilation
+- **Code sharing**: Multiple `PotHead` instances can reference the same config
+- **Predictable memory layout**: All configs visible at compile time
 
-**ROM Storage Analysis:**
+The builder pattern will be added in v0.2+ alongside calibration features for users who need runtime configuration flexibility.
+
+**Memory Efficiency:**
+
+For a system with 10 potentiometers using 3 different config types:
 ```
-Single pot:        Const generic (~1KB ROM) < Hybrid (~3KB ROM)
-5+ unique pots:    Hybrid (~3KB ROM) < Const generic (~5KB+ ROM)
-20 pots, 3 types:  Hybrid (~3KB ROM) = Const generic (~3KB ROM)
-                   BUT hybrid uses 80% less RAM
+Static configs:  3 configs in ROM + 10 state structs in RAM
+With builder:    10 configs in RAM + 10 state structs in RAM
+RAM savings:     ~70-80% (only state in RAM vs state + config)
 ```
 
 **Examples:**
 
 ```rust
-// Approach 1: Builder pattern (config in RAM, max flexibility)
-let mut pot = PotHead::builder()
-    .input_range(0..4095)
-    .output_range(0.0..1.0)
-    .response_curve(ResponseCurve::Linear)
-    .hysteresis(HysteresisMode::ChangeThreshold(5))
-    .snap_zone(SnapZone::new(0.0, 0.02, SnapZoneType::Snap))
-    .noise_filter(NoiseFilter::ExponentialMovingAverage { alpha: 0.3 })
-    .enable_grab_mode(true)
-    .build();
-
-// Approach 2: Static ROM configuration (minimal RAM, shared code)
+// Static ROM configuration
 static VOLUME_CONFIG: Config<u16, f32> = Config {
     input_min: 0,
     input_max: 4095,
@@ -915,9 +849,18 @@ static PAN_CONFIG: Config<u16, i16> = Config {
     grab_mode: GrabMode::None,
 };
 
-let mut volume_pot = PotHead::from_static(&VOLUME_CONFIG);
-let mut pan_pot = PotHead::from_static(&PAN_CONFIG);
-// Config lives in ROM (flash), only state lives in RAM
+// Validate configs at compile time
+const _: () = {
+    match VOLUME_CONFIG.validate() {
+        Ok(()) => {},
+        Err(e) => panic!("{}", e),
+    }
+};
+
+// Create PotHead instances (only state allocated in RAM)
+let mut volume_pot = PotHead::new(&VOLUME_CONFIG);
+let mut pan_pot = PotHead::new(&PAN_CONFIG);
+// Configs live in ROM (flash), only state lives in RAM
 ```
 
 ---
@@ -972,7 +915,6 @@ Unlike complex runtime configuration, feature flags work at compile time with ze
 
 | Feature | Default | ROM Impact | RAM Impact | Description |
 |---------|---------|------------|------------|-------------|
-| `builder` | ✅ Yes | ~2-3 KB | 0 bytes | Fluent builder API (alternative: use `from_static()` only) |
 | `log-curve` | ❌ No | ~2-5 KB | 0 bytes | Logarithmic response curves (requires `libm`) |
 | `filter-ema` | ✅ Yes | ~0.5 KB | 4-8 bytes/pot | Exponential moving average filter |
 | `filter-moving-avg` | ❌ No | ~1 KB | 32-128 bytes/pot | Simple moving average filter (requires buffer) |
@@ -986,7 +928,7 @@ Unlike complex runtime configuration, feature flags work at compile time with ze
 
 | Bundle | Includes | Use Case |
 |--------|----------|----------|
-| `default` | `builder`, `hysteresis-threshold`, `filter-ema` | General-purpose development |
+| `default` | `hysteresis-threshold`, `filter-ema` | General-purpose development |
 | `full` | All features | Professional audio equipment, maximum functionality |
 | `audio` | `log-curve`, `filter-ema`, `grab-mode`, `snap-zone-snap` | Audio mixers, synthesizers, DAW controllers |
 | `industrial` | `hysteresis-threshold`, `filter-moving-avg` | Industrial control panels, machine interfaces |
@@ -1000,9 +942,19 @@ This section documents features that were considered for v0.1 but deferred to fu
 
 ### v0.2+ Planned Features
 
-1. **Calibration API** - Runtime helpers for learning physical pot ranges and center positions
-2. **Advanced Grab Modes** - Scaling, threshold catch, takeover, timeout release
-3. **Detent Simulation** - Magnetic resistance around configured points
-4. **Advanced Noise Filters** - Median, Kalman-like, adaptive filtering
-5. **Response Curve Extensions** - Exponential, S-curve, custom lookup tables
-6. **Multi-Pot Features** - Ganging, master/slave relationships, crossfading
+1. **Builder API** - Fluent builder pattern for runtime configuration (deferred to focus on ROM-based configs in v0.1)
+2. **Calibration API** - Runtime helpers for learning physical pot ranges and center positions
+3. **Advanced Grab Modes** - Scaling, threshold catch, takeover, timeout release
+4. **Detent Simulation** - Magnetic resistance around configured points
+5. **Advanced Noise Filters** - Median, Kalman-like, adaptive filtering
+6. **Response Curve Extensions** - Exponential, S-curve, custom lookup tables
+7. **Multi-Pot Features** - Ganging, master/slave relationships, crossfading
+
+**Builder API Rationale:**
+
+The builder pattern provides excellent discoverability and ergonomics but requires storing configuration in RAM. For v0.1, we're focusing on the static ROM configuration approach which:
+- Minimizes RAM usage (critical for resource-constrained systems)
+- Enables compile-time validation
+- Allows config sharing across multiple instances
+
+The builder will be added in v0.2+ alongside calibration features for users who need runtime configuration flexibility or are working on systems where RAM is less constrained.

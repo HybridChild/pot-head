@@ -26,7 +26,7 @@ Raw ADC Value → pot-head Processing → Clean Output Value
 pot-head/
 ├── src/
 │   ├── lib.rs              # Main library entry point
-│   ├── config.rs           # Configuration types (Config, Builder, ConfigRef)
+│   ├── config.rs           # Configuration types (Config)
 │   ├── state.rs            # Runtime state management
 │   ├── pothead.rs          # Core PotHead implementation
 │   ├── filters/            # Noise filtering implementations
@@ -53,21 +53,21 @@ PotHead<TIn, TOut = TIn>
 - `TOut`: Output type (often normalized `f32` or application-specific)
 - Default `TOut = TIn` for same-type cases
 
-### 3. Hybrid Configuration
-Support both approaches:
-- **Builder pattern** (config in RAM, flexible)
+### 3. Static ROM Configuration (v0.1)
+v0.1 uses static ROM configuration exclusively:
 - **Static ROM config** (config in flash, minimal RAM)
+- **Builder pattern** deferred to v0.2+ (alongside calibration features)
 
 ### 4. Feature-Gated Compilation
 Granular Cargo features allow users to include only what they need:
 ```toml
-default = ["builder", "hysteresis-threshold", "filter-ema"]
-audio = ["builder", "log-curve", "filter-ema", "grab-mode", "snap-zone-snap"]
+default = ["hysteresis-threshold", "filter-ema"]
+audio = ["log-curve", "filter-ema", "grab-mode", "snap-zone-snap"]
 minimal = []  # Bare minimum
 ```
 
 ### 5. Error Handling Strategy
-- **Build-time validation**: Catch config errors in `builder.build()`
+- **Const validation**: Catch config errors at compile time
 - **Runtime clamping**: Gracefully handle ADC glitches
 - **Debug assertions**: Catch issues in development
 - **No panics in release**: Embedded-friendly
@@ -105,20 +105,7 @@ Input (TIn)
 
 ## Common Patterns
 
-### Builder Pattern Example
-```rust
-let mut pot = PotHead::builder()
-    .input_range(0_u16..4095_u16)       // TIn = u16
-    .output_range(0.0_f32..1.0_f32)     // TOut = f32
-    .response_curve(ResponseCurve::Logarithmic)
-    .noise_filter(NoiseFilter::ExponentialMovingAverage { alpha: 0.3 })
-    .build()?;
-
-// In main loop:
-let volume: f32 = pot.update(adc_value);
-```
-
-### Static ROM Config Example
+### Static ROM Config Example (v0.1)
 ```rust
 static VOLUME_CONFIG: Config<u16, f32> = Config {
     input_min: 0,
@@ -127,10 +114,24 @@ static VOLUME_CONFIG: Config<u16, f32> = Config {
     output_max: 1.0,
     curve: ResponseCurve::Logarithmic,
     filter: NoiseFilter::ExponentialMovingAverage { alpha: 0.3 },
-    // ... other fields
+    hysteresis: HysteresisMode::ChangeThreshold(8),
+    snap_zones: &[SnapZone::new(0.0, 0.02, SnapZoneType::Snap)],
+    grab_mode: GrabMode::Pickup,
 };
 
-let mut pot = PotHead::from_static(&VOLUME_CONFIG);
+// Validate at compile time
+const _: () = {
+    match VOLUME_CONFIG.validate() {
+        Ok(()) => {},
+        Err(e) => panic!("{}", e),
+    }
+};
+
+// Create instance (only state in RAM)
+let mut pot = PotHead::new(&VOLUME_CONFIG);
+
+// In main loop:
+let volume: f32 = pot.update(adc_value);
 ```
 
 ## Documentation Requirements
@@ -160,10 +161,11 @@ heapless = { version = "0.8", optional = true }    # For moving average buffer
 
 **Key Sections:**
 - Numeric type design (separate TIn/TOut)
-- Error handling strategy (4-layer approach)
+- Error handling strategy (const validation + runtime clamping)
 - Feature gating details
 - Grab mode implementations
 - Overlapping snap zones behavior
+- Builder API (deferred to v0.2+)
 
 ## Development Workflow
 
