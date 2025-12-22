@@ -4,6 +4,7 @@
 target
 Cargo.lock
 
-/TODO
 /notes
+/tmp
+/TODO.md
 /scratch.md
