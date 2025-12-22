@@ -13,9 +13,12 @@ exclude = ["examples/"]
 [dependencies]
 num-traits = { version = "0.2", default-features = false }
 libm = { version = "0.2", optional = true }
+heapless = { version = "0.9.2", optional = true }
 
 [features]
-default = ["hysteresis-threshold"]
+default = ["hysteresis-threshold", "filter-ema"]
 hysteresis-threshold = []
 hysteresis-schmitt = []
 log-curve = ["libm"]
+filter-ema = []
+filter-moving-avg = ["heapless"]

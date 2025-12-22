@@ -2,12 +2,14 @@ use num_traits::AsPrimitive;
 
 use crate::hysteresis::HysteresisMode;
 use crate::curves::ResponseCurve;
+use crate::filters::NoiseFilter;
 
 #[derive(Debug, PartialEq)]
 pub enum ConfigError {
     InvalidInputRange,
     InvalidOutputRange,
     InvalidHysteresis,
+    InvalidFilter,
 }
 
 impl core::fmt::Display for ConfigError {
@@ -16,6 +18,7 @@ impl core::fmt::Display for ConfigError {
             ConfigError::InvalidInputRange => write!(f, "input_min must be less than input_max"),
             ConfigError::InvalidOutputRange => write!(f, "output_min must not equal output_max"),
             ConfigError::InvalidHysteresis => write!(f, "invalid hysteresis configuration"),
+            ConfigError::InvalidFilter => write!(f, "invalid filter configuration"),
         }
     }
 }
@@ -27,6 +30,7 @@ pub struct Config<TIn, TOut = TIn> {
     pub output_max: TOut,
     pub hysteresis: HysteresisMode<f32>,
     pub curve: ResponseCurve,
+    pub filter: NoiseFilter,
 }
 
 impl<TIn, TOut> Config<TIn, TOut>
@@ -49,6 +53,11 @@ where
         self.hysteresis
             .validate()
             .map_err(|_| ConfigError::InvalidHysteresis)?;
+
+        // Validate filter configuration
+        self.filter
+            .validate()
+            .map_err(|_| ConfigError::InvalidFilter)?;
 
         Ok(())
     }

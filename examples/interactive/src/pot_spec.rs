@@ -3,7 +3,7 @@ use crate::pot_adapter::PotAdapter;
 use crate::renderable_pot::RenderablePot;
 use crossterm::style::Color;
 use num_traits::AsPrimitive;
-use pot_head::{Config, HysteresisMode, PotHead, ResponseCurve};
+use pot_head::{Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve};
 use std::fmt::Display;
 use std::io::Result;
 
@@ -24,6 +24,7 @@ pub struct PotSpec<TIn, TOut> {
     pub output_max: TOut,
     pub hysteresis: HysteresisMode<f32>,
     pub curve: ResponseCurve,
+    pub filter: NoiseFilter,
     pub color_scheme: ColorScheme,
     pub precision: usize,
 }
@@ -42,6 +43,7 @@ where
             output_max: self.output_max,
             hysteresis: self.hysteresis,
             curve: self.curve,
+            filter: self.filter,
         };
 
         let pot = PotHead::new(config).map_err(|e| {
@@ -71,6 +73,7 @@ pub const RAW_POT: PotSpec<u16, f32> = PotSpec {
     output_max: 1.0,
     hysteresis: HysteresisMode::none(),
     curve: ResponseCurve::Linear,
+    filter: NoiseFilter::None,
     color_scheme: DEFAULT_COLOR_SCHEME,
     precision: 3,
 };
@@ -81,8 +84,9 @@ pub const REVERSED_POT: PotSpec<u16, f32> = PotSpec {
     input_max: 4095,
     output_min: 100.0,
     output_max: -100.0,
-    hysteresis: HysteresisMode::ChangeThreshold { threshold: 0.05 },
+    hysteresis: HysteresisMode::none(),
     curve: ResponseCurve::Linear,
+    filter: NoiseFilter::None,
     color_scheme: DEFAULT_COLOR_SCHEME,
     precision: 2,
 };
@@ -95,6 +99,7 @@ pub const SCHMITT_POT: PotSpec<u16, i32> = PotSpec {
     output_max: 127,
     hysteresis: HysteresisMode::SchmittTrigger { rising: 0.6, falling: 0.4 },
     curve: ResponseCurve::Linear,
+    filter: NoiseFilter::None,
     color_scheme: DEFAULT_COLOR_SCHEME,
     precision: 0,
 };
@@ -107,6 +112,20 @@ pub const LOG_POT: PotSpec<u16, f32> = PotSpec {
     output_max: 1.0,
     hysteresis: HysteresisMode::none(),
     curve: ResponseCurve::Logarithmic,
+    filter: NoiseFilter::None,
+    color_scheme: DEFAULT_COLOR_SCHEME,
+    precision: 3,
+};
+
+pub const FILTERED_POT: PotSpec<u16, f32> = PotSpec {
+    label: "Filtered Pot (EMA)",
+    input_min: 0,
+    input_max: 4095,
+    output_min: 0.0,
+    output_max: 1.0,
+    hysteresis: HysteresisMode::ChangeThreshold { threshold: 0.05 },
+    curve: ResponseCurve::Linear,
+    filter: NoiseFilter::ExponentialMovingAverage { alpha: 0.3 },
     color_scheme: DEFAULT_COLOR_SCHEME,
     precision: 3,
 };

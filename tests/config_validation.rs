@@ -1,4 +1,4 @@
-use pot_head::{Config, ConfigError, HysteresisMode, PotHead, ResponseCurve};
+use pot_head::{Config, ConfigError, HysteresisMode, NoiseFilter, PotHead, ResponseCurve};
 
 #[test]
 fn test_invalid_input_range() {
@@ -9,6 +9,7 @@ fn test_invalid_input_range() {
         output_max: 1.0_f32,
         hysteresis: HysteresisMode::none(),
         curve: ResponseCurve::Linear,
+        filter: NoiseFilter::None,
     };
 
     let result = PotHead::new(config);
@@ -24,6 +25,7 @@ fn test_inverted_input_range() {
         output_max: 1.0_f32,
         hysteresis: HysteresisMode::none(),
         curve: ResponseCurve::Linear,
+        filter: NoiseFilter::None,
     };
 
     let result = PotHead::new(config);
@@ -39,6 +41,7 @@ fn test_invalid_output_range() {
         output_max: 1.0_f32,  // Same as min - invalid
         hysteresis: HysteresisMode::none(),
         curve: ResponseCurve::Linear,
+        filter: NoiseFilter::None,
     };
 
     let result = PotHead::new(config);

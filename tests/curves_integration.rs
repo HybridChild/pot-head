@@ -1,4 +1,4 @@
-use pot_head::{Config, HysteresisMode, PotHead, ResponseCurve};
+use pot_head::{Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve};
 
 #[test]
 fn test_linear_curve_integration() {
@@ -9,6 +9,7 @@ fn test_linear_curve_integration() {
         output_max: 1.0_f32,
         hysteresis: HysteresisMode::none(),
         curve: ResponseCurve::Linear,
+        filter: NoiseFilter::None,
     };
 
     let mut pot = PotHead::new(config).unwrap();
@@ -29,6 +30,7 @@ fn test_logarithmic_curve_integration() {
         output_max: 1.0_f32,
         hysteresis: HysteresisMode::none(),
         curve: ResponseCurve::Logarithmic,
+        filter: NoiseFilter::None,
     };
 
     let mut pot = PotHead::new(config).unwrap();

@@ -2,6 +2,12 @@ use num_traits::AsPrimitive;
 
 use crate::config::{Config, ConfigError};
 use crate::state::State;
+use crate::filters::NoiseFilter;
+
+#[cfg(feature = "filter-ema")]
+use crate::filters::EmaFilter;
+#[cfg(feature = "filter-moving-avg")]
+use crate::filters::MovingAvgFilter;
 
 pub struct PotHead<TIn, TOut = TIn> {
     config: Config<TIn, TOut>,
@@ -16,10 +22,21 @@ where
 {
     pub fn new(config: Config<TIn, TOut>) -> Result<Self, ConfigError> {
         config.validate()?;
-        Ok(Self {
-            config,
-            state: State::default(),
-        })
+
+        let mut state = State::default();
+
+        // Initialize filter state based on configuration
+        #[cfg(feature = "filter-ema")]
+        if matches!(config.filter, NoiseFilter::ExponentialMovingAverage { .. }) {
+            state.ema_filter = Some(EmaFilter::new());
+        }
+
+        #[cfg(feature = "filter-moving-avg")]
+        if let NoiseFilter::MovingAverage { window_size } = config.filter {
+            state.ma_filter = Some(MovingAvgFilter::new(window_size));
+        }
+
+        Ok(Self { config, state })
     }
 
     pub fn config(&self) -> &Config<TIn, TOut> {
@@ -30,14 +47,41 @@ where
         // Normalize input to 0.0..1.0
         let normalized = self.normalize_input(input);
 
+        // Apply noise filter
+        let filtered = self.apply_filter(normalized);
+
         // Apply response curve
-        let curved = self.config.curve.apply(normalized);
+        let curved = self.config.curve.apply(filtered);
 
         // Apply hysteresis
         let processed = self.config.hysteresis.apply(curved, &mut self.state.hysteresis);
 
         // Denormalize to output range
         self.denormalize_output(processed)
+    }
+
+    fn apply_filter(&mut self, value: f32) -> f32 {
+        match &self.config.filter {
+            NoiseFilter::None => value,
+
+            #[cfg(feature = "filter-ema")]
+            NoiseFilter::ExponentialMovingAverage { alpha } => {
+                if let Some(ref mut filter) = self.state.ema_filter {
+                    filter.apply(value, *alpha)
+                } else {
+                    value
+                }
+            }
+
+            #[cfg(feature = "filter-moving-avg")]
+            NoiseFilter::MovingAverage { .. } => {
+                if let Some(ref mut filter) = self.state.ma_filter {
+                    filter.apply(value)
+                } else {
+                    value
+                }
+            }
+        }
     }
 
     fn normalize_input(&self, input: TIn) -> f32 {

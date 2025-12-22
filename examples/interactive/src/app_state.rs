@@ -1,4 +1,4 @@
-use crate::pot_spec::{LOG_POT, RAW_POT, REVERSED_POT, SCHMITT_POT};
+use crate::pot_spec::{LOG_POT, RAW_POT, REVERSED_POT, SCHMITT_POT, FILTERED_POT};
 use crate::renderable_pot::RenderablePot;
 use crate::rendering::BAR_WIDTH;
 use rand_distr::{Distribution, Normal};
@@ -20,6 +20,7 @@ impl AppState {
     pub fn new() -> Result<Self> {
         let mut pots: Vec<Box<dyn RenderablePot>> = vec![
             RAW_POT.build()?,
+            FILTERED_POT.build()?,
             LOG_POT.build()?,
             SCHMITT_POT.build()?,
             REVERSED_POT.build()?,
