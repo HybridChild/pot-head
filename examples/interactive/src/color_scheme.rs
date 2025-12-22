@@ -5,6 +5,7 @@ pub struct ColorScheme {
     pub bar_color: Color,
     pub processed_indicator_color: Color,
     pub physical_indicator_color: Color,
+    pub threshold_color: Color,
 }
 
 impl ColorScheme {
@@ -13,6 +14,7 @@ impl ColorScheme {
             bar_color: dim_color(self.bar_color),
             processed_indicator_color: self.processed_indicator_color,
             physical_indicator_color: self.physical_indicator_color,
+            threshold_color: dim_color(self.threshold_color),
         }
     }
 }

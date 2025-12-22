@@ -5,8 +5,7 @@ use crate::state::State;
 
 pub struct PotHead<TIn, TOut = TIn> {
     config: Config<TIn, TOut>,
-    #[allow(dead_code)] // Will be used when filters and other stateful features are added
-    state: State,
+    state: State<f32>,
 }
 
 impl<TIn, TOut> PotHead<TIn, TOut>
@@ -31,8 +30,11 @@ where
         // Normalize input to 0.0..1.0
         let normalized = self.normalize_input(input);
 
+        // Apply hysteresis
+        let processed = self.config.hysteresis.apply(normalized, &mut self.state.hysteresis);
+
         // Denormalize to output range
-        self.denormalize_output(normalized)
+        self.denormalize_output(processed)
     }
 
     fn normalize_input(&self, input: TIn) -> f32 {

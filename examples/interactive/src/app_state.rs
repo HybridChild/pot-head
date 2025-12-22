@@ -1,4 +1,4 @@
-use crate::pot_spec::{INTEGER_POT, REVERSED_POT, STANDARD_POT};
+use crate::pot_spec::{RAW_POT, REVERSED_POT, SCHMITT_POT};
 use crate::renderable_pot::RenderablePot;
 use crate::rendering::BAR_WIDTH;
 use rand_distr::{Distribution, Normal};
@@ -19,9 +19,9 @@ pub struct AppState {
 impl AppState {
     pub fn new() -> Result<Self> {
         let mut pots: Vec<Box<dyn RenderablePot>> = vec![
-            STANDARD_POT.build()?,
+            RAW_POT.build()?,
             REVERSED_POT.build()?,
-            INTEGER_POT.build()?,
+            SCHMITT_POT.build()?,
         ];
 
         // Initialize all pots with centered input

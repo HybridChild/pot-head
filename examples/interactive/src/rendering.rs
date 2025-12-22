@@ -19,6 +19,8 @@ pub fn render_bar(
     bar_color: Color,
     processed_indicator_color: Color,
     physical_indicator_color: Color,
+    threshold_color: Color,
+    threshold_positions: &[f32],
 ) -> String {
     let processed_normalized = ((processed_value - min) / (max - min)).clamp(0.0, 1.0);
     let physical_normalized = ((physical_value - min) / (max - min)).clamp(0.0, 1.0);
@@ -29,6 +31,12 @@ pub fn render_bar(
     // Calculate positions for both indicators
     let processed_pos = (processed_normalized * (inner_width - 1) as f32).round() as usize;
     let physical_pos = (physical_normalized * (inner_width - 1) as f32).round() as usize;
+
+    // Calculate threshold positions (already normalized 0.0-1.0)
+    let threshold_positions_idx: Vec<usize> = threshold_positions
+        .iter()
+        .map(|&t| (t.clamp(0.0, 1.0) * (inner_width - 1) as f32).round() as usize)
+        .collect();
 
     let mut bar = String::with_capacity(width + 200); // Extra space for ANSI codes
 
@@ -54,6 +62,9 @@ pub fn render_bar(
         // Check if we need to render the physical indicator "|" at this position
         let is_physical = i == physical_pos;
 
+        // Check if we need to render a threshold marker at this position
+        let is_threshold = threshold_positions_idx.contains(&i);
+
         // Physical indicator has priority (drawn on top)
         if is_physical {
             bar.push_str(&set_color(physical_indicator_color));
@@ -70,6 +81,10 @@ pub fn render_bar(
         } else if is_processed_right {
             bar.push_str(&set_color(processed_indicator_color));
             bar.push('>');
+            bar.push_str(&set_color(bar_color));
+        } else if is_threshold {
+            bar.push_str(&set_color(threshold_color));
+            bar.push('┊');
             bar.push_str(&set_color(bar_color));
         } else {
             bar.push('-');
@@ -192,10 +207,11 @@ pub fn render(state: &mut AppState) -> Result<()> {
             stdout,
             MoveTo(0, line),
             Print(format!(
-                "     Input  [{} - {}]: {}",
+                "     Input  [{} - {}]: {}  (Hysteresis: {})",
                 info.input_range.0,
                 info.input_range.1,
                 info.input_value,
+                info.hysteresis_info,
             )),
         )?;
         line += 1;
@@ -212,8 +228,12 @@ pub fn render(state: &mut AppState) -> Result<()> {
         )?;
         line += 1;
 
-        // Physical position is the normalized input mapped to the display range
-        let physical_position = state.normalized_input;
+        // Physical position shows the noisy input for the selected pot, clean input for others
+        let physical_position = if is_selected {
+            noisy_input
+        } else {
+            state.normalized_input
+        };
 
         queue!(
             stdout,
@@ -222,13 +242,15 @@ pub fn render(state: &mut AppState) -> Result<()> {
                 "     {}",
                 render_bar(
                     info.output_position, // Processed position (normalized output)
-                    physical_position,    // Physical position (normalized input)
+                    physical_position,    // Physical position (normalized input with noise)
                     0.0,
                     1.0,
                     BAR_WIDTH,
                     colors.bar_color,
                     colors.processed_indicator_color,
-                    colors.physical_indicator_color
+                    colors.physical_indicator_color,
+                    colors.threshold_color,
+                    &info.threshold_positions
                 )
             )),
         )?;
@@ -253,7 +275,7 @@ pub fn render(state: &mut AppState) -> Result<()> {
         stdout,
         MoveTo(0, line),
         Print(
-            "║  ← → adjust input  |  + - noise  |  ↑ ↓ select pot  |  q/Esc quit       ║"
+            "║  ← → adjust input  |  + - noise  |  ↑ ↓ select pot  |  q/Esc quit      ║"
         ),
     )?;
     line += 1;

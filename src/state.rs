@@ -1,9 +1,17 @@
-pub struct State {
-    // Currently empty, but will hold filter state, etc. in the future
+use crate::hysteresis::HysteresisState;
+
+pub struct State<T> {
+    /// Hysteresis processing state
+    pub hysteresis: HysteresisState<T>,
 }
 
-impl Default for State {
+impl<T> Default for State<T>
+where
+    T: Default,
+{
     fn default() -> Self {
-        Self {}
+        Self {
+            hysteresis: HysteresisState::default(),
+        }
     }
 }

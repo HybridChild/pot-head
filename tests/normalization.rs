@@ -1,4 +1,4 @@
-use pot_head::{Config, PotHead};
+use pot_head::{Config, HysteresisMode, PotHead};
 
 #[test]
 fn test_u16_to_u16_normalization() {
@@ -7,6 +7,7 @@ fn test_u16_to_u16_normalization() {
         input_max: 4095_u16,
         output_min: 0_u16,
         output_max: 255_u16,
+        hysteresis: HysteresisMode::none(),
     };
 
     let mut pot = PotHead::new(config).unwrap();
@@ -33,6 +34,7 @@ fn test_u16_to_f32_normalization() {
         input_max: 4095_u16,
         output_min: 0.0_f32,
         output_max: 1.0_f32,
+        hysteresis: HysteresisMode::none(),
     };
 
     let mut pot = PotHead::new(config).unwrap();
@@ -59,6 +61,7 @@ fn test_input_clamping() {
         input_max: 200_u16,
         output_min: 0.0_f32,
         output_max: 1.0_f32,
+        hysteresis: HysteresisMode::none(),
     };
 
     let mut pot = PotHead::new(config).unwrap();
@@ -80,6 +83,7 @@ fn test_inverted_output_range() {
         input_max: 100_u16,
         output_min: 1.0_f32,
         output_max: 0.0_f32,
+        hysteresis: HysteresisMode::none(),
     };
 
     let mut pot = PotHead::new(config).unwrap();
@@ -102,6 +106,7 @@ fn test_same_type_conversion() {
         input_max: 1.0_f32,
         output_min: 0.0_f32,
         output_max: 100.0_f32,
+        hysteresis: HysteresisMode::none(),
     };
 
     let mut pot = PotHead::new(config).unwrap();

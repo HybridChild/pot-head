@@ -1,7 +1,7 @@
 use crate::color_scheme::ColorScheme;
 use crate::renderable_pot::{RenderInfo, RenderablePot};
 use num_traits::AsPrimitive;
-use pot_head::PotHead;
+use pot_head::{HysteresisMode, PotHead};
 use std::fmt::Display;
 
 /// Adapts a PotHead<TIn, TOut> to the RenderablePot trait
@@ -11,6 +11,7 @@ pub struct PotAdapter<TIn, TOut> {
     color_scheme: ColorScheme,
     precision: usize,
     last_output: TOut,
+    last_input: TIn,
     // Store input range for denormalization
     input_min: TIn,
     input_max: TIn,
@@ -45,6 +46,7 @@ where
             color_scheme,
             precision,
             last_output: initial_output,
+            last_input: input_min,
             input_min,
             input_max,
         }
@@ -73,12 +75,12 @@ where
 {
     fn update(&mut self, normalized_input: f32) {
         let input = self.denormalize_input(normalized_input);
+        self.last_input = input;
         self.last_output = self.pot.update(input);
     }
 
     fn get_render_info(&self) -> RenderInfo {
-        // Get the last input value by getting it from the pot's config and last state
-        // We'll store it when we update
+        let config = self.pot.config();
         let (output_min, output_max) = self.output_range();
 
         let input_min_f = self.input_min.as_();
@@ -87,15 +89,24 @@ where
         let output_max_f = output_max.as_();
         let output_f = self.last_output.as_();
 
-        // Calculate the current input value from the output (reverse the mapping)
-        // This works because we know: output = output_min + normalized * (output_max - output_min)
-        // So: normalized = (output - output_min) / (output_max - output_min)
-        let normalized = if output_max_f != output_min_f {
-            (output_f - output_min_f) / (output_max_f - output_min_f)
+        // Format hysteresis info
+        let hysteresis_info = match &config.hysteresis {
+            HysteresisMode::None(_) => "None".to_string(),
+            HysteresisMode::ChangeThreshold { threshold } => format!("Threshold: {:.1}%", threshold * 100.0),
+            HysteresisMode::SchmittTrigger { rising, falling } => {
+                format!("Schmitt: ↑{:.0}% ↓{:.0}%", rising * 100.0, falling * 100.0)
+            }
+        };
+
+        // Use the actual input value that was last provided
+        let input_f = self.last_input.as_();
+
+        // Calculate normalized input position (0.0-1.0)
+        let input_normalized = if input_max_f != input_min_f {
+            (input_f - input_min_f) / (input_max_f - input_min_f)
         } else {
             0.5
         };
-        let input_f = input_min_f + normalized * (input_max_f - input_min_f);
 
         // Determine display range (always ascending for the bar)
         let (display_min_f, display_max_f) = if output_min_f < output_max_f {
@@ -125,8 +136,23 @@ where
             self.precision
         };
 
+        // Calculate threshold positions for visualization
+        let threshold_positions = match &config.hysteresis {
+            HysteresisMode::None(_) => vec![],
+            HysteresisMode::ChangeThreshold { threshold } => {
+                // Show the dead zone boundaries around the current input position
+                let lower_threshold = (input_normalized - threshold).max(0.0);
+                let upper_threshold = (input_normalized + threshold).min(1.0);
+                vec![lower_threshold, upper_threshold]
+            }
+            HysteresisMode::SchmittTrigger { rising, falling } => {
+                vec![*falling, *rising]
+            }
+        };
+
         RenderInfo {
             label: self.label.to_string(),
+            hysteresis_info,
             input_value: format!("{:.prec$}", input_f, prec = input_precision),
             input_range: (
                 format!("{:.prec$}", input_min_f, prec = input_precision),
@@ -138,6 +164,7 @@ where
                 format!("{:.prec$}", display_max.as_(), prec = self.precision),
             ),
             output_position,
+            threshold_positions,
         }
     }
 

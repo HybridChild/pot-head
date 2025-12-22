@@ -1,9 +1,12 @@
 use num_traits::AsPrimitive;
 
+use crate::hysteresis::HysteresisMode;
+
 #[derive(Debug, PartialEq)]
 pub enum ConfigError {
     InvalidInputRange,
     InvalidOutputRange,
+    InvalidHysteresis,
 }
 
 impl core::fmt::Display for ConfigError {
@@ -11,6 +14,7 @@ impl core::fmt::Display for ConfigError {
         match self {
             ConfigError::InvalidInputRange => write!(f, "input_min must be less than input_max"),
             ConfigError::InvalidOutputRange => write!(f, "output_min must not equal output_max"),
+            ConfigError::InvalidHysteresis => write!(f, "invalid hysteresis configuration"),
         }
     }
 }
@@ -20,6 +24,7 @@ pub struct Config<TIn, TOut = TIn> {
     pub input_max: TIn,
     pub output_min: TOut,
     pub output_max: TOut,
+    pub hysteresis: HysteresisMode<f32>,
 }
 
 impl<TIn, TOut> Config<TIn, TOut>
@@ -37,6 +42,11 @@ where
         if self.output_min == self.output_max {
             return Err(ConfigError::InvalidOutputRange);
         }
+
+        // Validate hysteresis configuration
+        self.hysteresis
+            .validate()
+            .map_err(|_| ConfigError::InvalidHysteresis)?;
 
         Ok(())
     }
