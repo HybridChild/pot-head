@@ -1,6 +1,7 @@
 use num_traits::AsPrimitive;
 
 use crate::hysteresis::HysteresisMode;
+use crate::curves::ResponseCurve;
 
 #[derive(Debug, PartialEq)]
 pub enum ConfigError {
@@ -25,6 +26,7 @@ pub struct Config<TIn, TOut = TIn> {
     pub output_min: TOut,
     pub output_max: TOut,
     pub hysteresis: HysteresisMode<f32>,
+    pub curve: ResponseCurve,
 }
 
 impl<TIn, TOut> Config<TIn, TOut>

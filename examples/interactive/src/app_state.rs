@@ -1,4 +1,4 @@
-use crate::pot_spec::{RAW_POT, REVERSED_POT, SCHMITT_POT};
+use crate::pot_spec::{LOG_POT, RAW_POT, REVERSED_POT, SCHMITT_POT};
 use crate::renderable_pot::RenderablePot;
 use crate::rendering::BAR_WIDTH;
 use rand_distr::{Distribution, Normal};
@@ -20,8 +20,9 @@ impl AppState {
     pub fn new() -> Result<Self> {
         let mut pots: Vec<Box<dyn RenderablePot>> = vec![
             RAW_POT.build()?,
-            REVERSED_POT.build()?,
+            LOG_POT.build()?,
             SCHMITT_POT.build()?,
+            REVERSED_POT.build()?,
         ];
 
         // Initialize all pots with centered input
@@ -78,7 +79,7 @@ impl AppState {
             return self.normalized_input;
         }
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Standard deviation scales with noise_level
         // Max noise is ~10% of full range (3 sigma rule: 99.7% within ±3σ)

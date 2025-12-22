@@ -1,4 +1,4 @@
-use pot_head::{Config, HysteresisMode, PotHead};
+use pot_head::{Config, HysteresisMode, PotHead, ResponseCurve};
 
 #[test]
 fn test_pothead_with_no_hysteresis() {
@@ -8,6 +8,7 @@ fn test_pothead_with_no_hysteresis() {
         output_min: 0.0_f32,
         output_max: 1.0_f32,
         hysteresis: HysteresisMode::none(),
+        curve: ResponseCurve::Linear,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");
@@ -34,6 +35,7 @@ fn test_pothead_with_change_threshold() {
         output_min: 0.0_f32,
         output_max: 1.0_f32,
         hysteresis: HysteresisMode::ChangeThreshold { threshold: 0.05 }, // 5% threshold in normalized space
+        curve: ResponseCurve::Linear,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");
@@ -72,6 +74,7 @@ fn test_pothead_with_schmitt_trigger() {
         output_min: 0.0_f32,
         output_max: 1.0_f32,
         hysteresis: HysteresisMode::SchmittTrigger {
+        curve: ResponseCurve::Linear,
             rising: 0.6,
             falling: 0.4,
         },
@@ -110,6 +113,7 @@ fn test_hysteresis_with_different_types() {
         output_min: -100_i16,
         output_max: 100_i16,
         hysteresis: HysteresisMode::ChangeThreshold { threshold: 0.1 }, // 10% threshold
+        curve: ResponseCurve::Linear,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");
@@ -137,6 +141,7 @@ fn test_invalid_schmitt_config() {
         output_min: 0.0_f32,
         output_max: 1.0_f32,
         hysteresis: HysteresisMode::SchmittTrigger {
+        curve: ResponseCurve::Linear,
             rising: 0.4,  // Invalid: rising <= falling
             falling: 0.6,
         },

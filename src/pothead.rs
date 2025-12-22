@@ -30,8 +30,11 @@ where
         // Normalize input to 0.0..1.0
         let normalized = self.normalize_input(input);
 
+        // Apply response curve
+        let curved = self.config.curve.apply(normalized);
+
         // Apply hysteresis
-        let processed = self.config.hysteresis.apply(normalized, &mut self.state.hysteresis);
+        let processed = self.config.hysteresis.apply(curved, &mut self.state.hysteresis);
 
         // Denormalize to output range
         self.denormalize_output(processed)
