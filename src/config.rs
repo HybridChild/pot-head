@@ -5,6 +5,9 @@ use crate::curves::ResponseCurve;
 use crate::filters::NoiseFilter;
 use crate::snap_zones::SnapZone;
 
+#[cfg(feature = "grab-mode")]
+use crate::grab_mode::GrabMode;
+
 #[derive(Debug, PartialEq)]
 pub enum ConfigError {
     InvalidInputRange,
@@ -35,6 +38,9 @@ pub struct Config<TIn, TOut = TIn> {
     pub curve: ResponseCurve,
     pub filter: NoiseFilter,
     pub snap_zones: &'static [SnapZone<f32>],
+
+    #[cfg(feature = "grab-mode")]
+    pub grab_mode: GrabMode,
 }
 
 impl<TIn, TOut> Config<TIn, TOut>

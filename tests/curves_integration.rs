@@ -1,4 +1,4 @@
-use pot_head::{Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+use pot_head::{GrabMode, Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
 
 static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
@@ -13,6 +13,7 @@ fn test_linear_curve_integration() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
+        grab_mode: GrabMode::None,
     };
 
     let mut pot = PotHead::new(config).unwrap();
@@ -35,6 +36,7 @@ fn test_logarithmic_curve_integration() {
         curve: ResponseCurve::Logarithmic,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
+        grab_mode: GrabMode::None,
     };
 
     let mut pot = PotHead::new(config).unwrap();

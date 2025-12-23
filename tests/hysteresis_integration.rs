@@ -1,4 +1,4 @@
-use pot_head::{Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+use pot_head::{GrabMode, Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
 
 static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
@@ -13,6 +13,7 @@ fn test_pothead_with_no_hysteresis() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
+        grab_mode: GrabMode::None,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");
@@ -42,6 +43,7 @@ fn test_pothead_with_change_threshold() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
+        grab_mode: GrabMode::None,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");
@@ -124,6 +126,7 @@ fn test_hysteresis_with_different_types() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
+        grab_mode: GrabMode::None,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");

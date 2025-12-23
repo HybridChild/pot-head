@@ -37,4 +37,7 @@ pub trait RenderablePot {
 
     /// Get the color scheme, accounting for selection state
     fn active_color_scheme(&self, is_selected: bool) -> ColorScheme;
+
+    /// Release grab mode (for mode switching)
+    fn release(&mut self);
 }

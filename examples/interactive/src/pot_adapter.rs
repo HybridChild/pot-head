@@ -190,4 +190,8 @@ where
             self.color_scheme.dimmed()
         }
     }
+
+    fn release(&mut self) {
+        self.pot.release();
+    }
 }

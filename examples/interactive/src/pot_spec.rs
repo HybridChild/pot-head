@@ -3,7 +3,7 @@ use crate::pot_adapter::PotAdapter;
 use crate::renderable_pot::RenderablePot;
 use crossterm::style::Color;
 use num_traits::AsPrimitive;
-use pot_head::{Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone, SnapZoneType};
+use pot_head::{Config, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone, SnapZoneType};
 use std::fmt::Display;
 use std::io::Result;
 
@@ -28,6 +28,7 @@ pub struct PotSpec<TIn, TOut> {
     pub curve: ResponseCurve,
     pub filter: NoiseFilter,
     pub snap_zones: &'static [SnapZone<f32>],
+    pub grab_mode: GrabMode,
     pub color_scheme: ColorScheme,
     pub precision: usize,
 }
@@ -48,6 +49,7 @@ where
             curve: self.curve,
             filter: self.filter,
             snap_zones: self.snap_zones,
+            grab_mode: self.grab_mode,
         };
 
         let pot = PotHead::new(config).map_err(|e| {
@@ -82,6 +84,7 @@ pub const RAW_POT: PotSpec<u16, f32> = PotSpec {
     curve: ResponseCurve::Linear,
     filter: NoiseFilter::None,
     snap_zones: &EMPTY_SNAP_ZONES,
+    grab_mode: GrabMode::None,
     color_scheme: DEFAULT_COLOR_SCHEME,
     precision: 3,
 };
@@ -96,6 +99,7 @@ pub const REVERSED_POT: PotSpec<u16, f32> = PotSpec {
     curve: ResponseCurve::Linear,
     filter: NoiseFilter::None,
     snap_zones: &EMPTY_SNAP_ZONES,
+    grab_mode: GrabMode::None,
     color_scheme: DEFAULT_COLOR_SCHEME,
     precision: 2,
 };
@@ -110,6 +114,7 @@ pub const SCHMITT_POT: PotSpec<u16, i32> = PotSpec {
     curve: ResponseCurve::Linear,
     filter: NoiseFilter::None,
     snap_zones: &EMPTY_SNAP_ZONES,
+    grab_mode: GrabMode::None,
     color_scheme: DEFAULT_COLOR_SCHEME,
     precision: 0,
 };
@@ -124,6 +129,7 @@ pub const LOG_POT: PotSpec<u16, f32> = PotSpec {
     curve: ResponseCurve::Logarithmic,
     filter: NoiseFilter::None,
     snap_zones: &EMPTY_SNAP_ZONES,
+    grab_mode: GrabMode::None,
     color_scheme: DEFAULT_COLOR_SCHEME,
     precision: 3,
 };
@@ -138,6 +144,7 @@ pub const FILTERED_POT: PotSpec<u16, f32> = PotSpec {
     curve: ResponseCurve::Linear,
     filter: NoiseFilter::ExponentialMovingAverage { alpha: 0.3 },
     snap_zones: &EMPTY_SNAP_ZONES,
+    grab_mode: GrabMode::None,
     color_scheme: DEFAULT_COLOR_SCHEME,
     precision: 3,
 };
@@ -159,6 +166,37 @@ pub const SNAP_POT: PotSpec<u16, f32> = PotSpec {
     curve: ResponseCurve::Linear,
     filter: NoiseFilter::None,
     snap_zones: &SNAP_POT_ZONES,
+    grab_mode: GrabMode::None,
+    color_scheme: DEFAULT_COLOR_SCHEME,
+    precision: 3,
+};
+
+pub const PICKUP_POT: PotSpec<u16, f32> = PotSpec {
+    label: "Pickup Mode Pot",
+    input_min: 0,
+    input_max: 4095,
+    output_min: 0.0,
+    output_max: 1.0,
+    hysteresis: HysteresisMode::none(),
+    curve: ResponseCurve::Linear,
+    filter: NoiseFilter::None,
+    snap_zones: &EMPTY_SNAP_ZONES,
+    grab_mode: GrabMode::Pickup,
+    color_scheme: DEFAULT_COLOR_SCHEME,
+    precision: 3,
+};
+
+pub const PASSTHROUGH_POT: PotSpec<u16, f32> = PotSpec {
+    label: "PassThrough Mode Pot",
+    input_min: 0,
+    input_max: 4095,
+    output_min: 0.0,
+    output_max: 1.0,
+    hysteresis: HysteresisMode::none(),
+    curve: ResponseCurve::Linear,
+    filter: NoiseFilter::None,
+    snap_zones: &EMPTY_SNAP_ZONES,
+    grab_mode: GrabMode::PassThrough,
     color_scheme: DEFAULT_COLOR_SCHEME,
     precision: 3,
 };

@@ -1,4 +1,4 @@
-use pot_head::{Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+use pot_head::{GrabMode, Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
 
 #[cfg(any(feature = "snap-zone-snap", feature = "snap-zone-dead"))]
 use pot_head::SnapZoneType;
@@ -19,6 +19,7 @@ fn test_snap_zone_basic() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
+        grab_mode: GrabMode::None,
     };
 
     let mut pot = PotHead::new(config).unwrap();
@@ -53,6 +54,7 @@ fn test_multiple_snap_zones() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
+        grab_mode: GrabMode::None,
     };
 
     let mut pot = PotHead::new(config).unwrap();
@@ -83,6 +85,7 @@ fn test_dead_zone_basic() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
+        grab_mode: GrabMode::None,
     };
 
     let mut pot = PotHead::new(config).unwrap();
@@ -121,6 +124,7 @@ fn test_mixed_snap_and_dead_zones() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
+        grab_mode: GrabMode::None,
     };
 
     let mut pot = PotHead::new(config).unwrap();
@@ -155,6 +159,7 @@ fn test_overlapping_zones_first_match_wins() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
+        grab_mode: GrabMode::None,
     };
 
     let mut pot = PotHead::new(config).unwrap();
@@ -177,6 +182,7 @@ fn test_empty_snap_zones() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
+        grab_mode: GrabMode::None,
     };
 
     let mut pot = PotHead::new(config).unwrap();
@@ -204,6 +210,7 @@ fn test_snap_zone_validation_overlaps() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &OVERLAPPING_ZONES,
+        grab_mode: GrabMode::None,
     };
 
     // Config is valid - overlaps are allowed by default
@@ -231,6 +238,7 @@ fn test_snap_zone_validation_no_overlaps() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &NON_OVERLAPPING_ZONES,
+        grab_mode: GrabMode::None,
     };
 
     // Should pass both validations

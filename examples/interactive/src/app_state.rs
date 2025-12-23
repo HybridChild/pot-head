@@ -1,4 +1,4 @@
-use crate::pot_spec::{LOG_POT, RAW_POT, REVERSED_POT, SCHMITT_POT, FILTERED_POT, SNAP_POT};
+use crate::pot_spec::{LOG_POT, RAW_POT, REVERSED_POT, SCHMITT_POT, FILTERED_POT, SNAP_POT, PASSTHROUGH_POT};
 use crate::renderable_pot::RenderablePot;
 use crate::rendering::BAR_WIDTH;
 use rand_distr::{Distribution, Normal};
@@ -24,6 +24,7 @@ impl AppState {
             LOG_POT.build()?,
             SCHMITT_POT.build()?,
             SNAP_POT.build()?,
+            PASSTHROUGH_POT.build()?,
             REVERSED_POT.build()?,
         ];
 
@@ -52,12 +53,18 @@ impl AppState {
 
     pub fn select_next_pot(&mut self) {
         if !self.pots.is_empty() {
+            // Release the current pot before switching
+            self.pots[self.selected_pot_index].release();
+
             self.selected_pot_index = (self.selected_pot_index + 1) % self.pots.len();
         }
     }
 
     pub fn select_prev_pot(&mut self) {
         if !self.pots.is_empty() {
+            // Release the current pot before switching
+            self.pots[self.selected_pot_index].release();
+
             self.selected_pot_index = if self.selected_pot_index == 0 {
                 self.pots.len() - 1
             } else {

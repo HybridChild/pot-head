@@ -5,7 +5,7 @@ edition = "2024"
 publish = false
 
 [dependencies]
-pot-head = { path = "../..", features = ["hysteresis-threshold", "hysteresis-schmitt", "log-curve", "filter-ema", "snap-zone-snap", "snap-zone-dead"] }
+pot-head = { path = "../..", features = ["hysteresis-threshold", "hysteresis-schmitt", "log-curve", "filter-ema", "snap-zone-snap", "snap-zone-dead", "grab-mode"] }
 crossterm = "0.29"
 num-traits = { version = "0.2", default-features = false }
 rand = "0.9.2"
