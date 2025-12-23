@@ -1,4 +1,7 @@
-use pot_head::{Config, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+use pot_head::{Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+
+#[cfg(feature = "grab-mode")]
+use pot_head::GrabMode;
 
 static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
@@ -13,6 +16,7 @@ fn test_linear_curve_integration() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -24,7 +28,7 @@ fn test_linear_curve_integration() {
     assert_eq!(pot.update(100), 1.0);
 }
 
-#[cfg(feature = "log-curve")]
+#[cfg(feature = "std-math")]
 #[test]
 fn test_logarithmic_curve_integration() {
     let config = Config {
@@ -36,6 +40,7 @@ fn test_logarithmic_curve_integration() {
         curve: ResponseCurve::Logarithmic,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 

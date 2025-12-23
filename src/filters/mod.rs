@@ -2,14 +2,14 @@
 ///
 /// Filters smooth noisy ADC readings. All filtering happens in normalized f32 space.
 
-#[cfg(feature = "filter-ema")]
 mod ema;
-#[cfg(feature = "filter-moving-avg")]
+
+#[cfg(feature = "moving-average")]
 mod moving_avg;
 
-#[cfg(feature = "filter-ema")]
 pub use ema::EmaFilter;
-#[cfg(feature = "filter-moving-avg")]
+
+#[cfg(feature = "moving-average")]
 pub use moving_avg::MovingAvgFilter;
 
 /// Noise filter configuration
@@ -21,13 +21,12 @@ pub enum NoiseFilter {
     /// Exponential moving average: output = alpha * input + (1 - alpha) * previous
     /// Lower alpha = more smoothing, higher = more responsive
     /// Requires: 0.0 < alpha <= 1.0
-    #[cfg(feature = "filter-ema")]
     ExponentialMovingAverage { alpha: f32 },
 
     /// Simple moving average over N samples
     /// Window size configured at filter creation
     /// Requires buffer of size window_size (RAM cost: window_size * 4 bytes)
-    #[cfg(feature = "filter-moving-avg")]
+    #[cfg(feature = "moving-average")]
     MovingAverage { window_size: usize },
 }
 
@@ -37,7 +36,6 @@ impl NoiseFilter {
         match self {
             NoiseFilter::None => Ok(()),
 
-            #[cfg(feature = "filter-ema")]
             NoiseFilter::ExponentialMovingAverage { alpha } => {
                 if *alpha <= 0.0 || *alpha > 1.0 {
                     return Err("EMA alpha must be in range (0.0, 1.0]");
@@ -45,7 +43,7 @@ impl NoiseFilter {
                 Ok(())
             }
 
-            #[cfg(feature = "filter-moving-avg")]
+            #[cfg(feature = "moving-average")]
             NoiseFilter::MovingAverage { window_size } => {
                 if *window_size == 0 {
                     return Err("MovingAverage window_size must be > 0");

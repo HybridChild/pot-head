@@ -1,4 +1,7 @@
-use pot_head::{Config, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+use pot_head::{Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+
+#[cfg(feature = "grab-mode")]
+use pot_head::GrabMode;
 
 static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
@@ -13,6 +16,7 @@ fn test_pothead_with_no_hysteresis() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
+#[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -49,6 +53,7 @@ fn test_pothead_with_change_threshold() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
+#[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -132,6 +137,7 @@ fn test_hysteresis_with_different_types() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
+#[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 

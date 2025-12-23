@@ -1,9 +1,8 @@
-use pot_head::{Config, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+use pot_head::{Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone, SnapZoneType};
 
-#[cfg(any(feature = "snap-zone-snap", feature = "snap-zone-dead"))]
-use pot_head::SnapZoneType;
+#[cfg(feature = "grab-mode")]
+use pot_head::GrabMode;
 
-#[cfg(feature = "snap-zone-snap")]
 #[test]
 fn test_snap_zone_basic() {
     static SNAP_ZONES: [SnapZone<f32>; 1] = [
@@ -19,6 +18,7 @@ fn test_snap_zone_basic() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
+#[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -40,7 +40,6 @@ fn test_snap_zone_basic() {
     );
 }
 
-#[cfg(feature = "snap-zone-snap")]
 #[test]
 fn test_multiple_snap_zones() {
     static SNAP_ZONES: [SnapZone<f32>; 3] = [
@@ -58,6 +57,7 @@ fn test_multiple_snap_zones() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
+#[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -77,7 +77,6 @@ fn test_multiple_snap_zones() {
     );
 }
 
-#[cfg(feature = "snap-zone-dead")]
 #[test]
 fn test_dead_zone_basic() {
     static SNAP_ZONES: [SnapZone<f32>; 1] = [
@@ -93,6 +92,7 @@ fn test_dead_zone_basic() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
+#[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -131,7 +131,6 @@ fn test_dead_zone_basic() {
     );
 }
 
-#[cfg(all(feature = "snap-zone-snap", feature = "snap-zone-dead"))]
 #[test]
 fn test_mixed_snap_and_dead_zones() {
     static SNAP_ZONES: [SnapZone<f32>; 2] = [
@@ -148,6 +147,7 @@ fn test_mixed_snap_and_dead_zones() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
+#[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -173,7 +173,6 @@ fn test_mixed_snap_and_dead_zones() {
     );
 }
 
-#[cfg(feature = "snap-zone-snap")]
 #[test]
 fn test_overlapping_zones_first_match_wins() {
     // Intentional overlap: second zone is within first zone's range
@@ -191,6 +190,7 @@ fn test_overlapping_zones_first_match_wins() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
+#[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -218,6 +218,7 @@ fn test_empty_snap_zones() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
+#[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -229,7 +230,6 @@ fn test_empty_snap_zones() {
     assert_eq!(pot.update(100), 1.0);
 }
 
-#[cfg(feature = "snap-zone-snap")]
 #[test]
 fn test_snap_zone_validation_overlaps() {
     static OVERLAPPING_ZONES: [SnapZone<f32>; 2] = [
@@ -246,6 +246,7 @@ fn test_snap_zone_validation_overlaps() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &OVERLAPPING_ZONES,
+#[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -256,7 +257,6 @@ fn test_snap_zone_validation_overlaps() {
     assert!(config.validate_snap_zones().is_err());
 }
 
-#[cfg(feature = "snap-zone-snap")]
 #[test]
 fn test_snap_zone_validation_no_overlaps() {
     static NON_OVERLAPPING_ZONES: [SnapZone<f32>; 3] = [
@@ -274,6 +274,7 @@ fn test_snap_zone_validation_no_overlaps() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &NON_OVERLAPPING_ZONES,
+#[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 

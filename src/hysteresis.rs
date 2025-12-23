@@ -1,7 +1,6 @@
 use core::marker::PhantomData;
 
 /// Schmitt trigger output state
-#[cfg(feature = "hysteresis-schmitt")]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SchmittState {
     Low,
@@ -16,11 +15,9 @@ pub enum HysteresisMode<T> {
     None(PhantomData<T>),
 
     /// Ignore changes smaller than threshold
-    #[cfg(feature = "hysteresis-threshold")]
     ChangeThreshold { threshold: T },
 
     /// Separate rising/falling thresholds to prevent boundary oscillation
-    #[cfg(feature = "hysteresis-schmitt")]
     SchmittTrigger { rising: T, falling: T },
 }
 
@@ -29,8 +26,6 @@ pub enum HysteresisMode<T> {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct HysteresisState<T> {
     pub last_output: T,
-
-    #[cfg(feature = "hysteresis-schmitt")]
     pub schmitt_state: SchmittState,
 }
 
@@ -41,7 +36,6 @@ where
     fn default() -> Self {
         Self {
             last_output: T::default(),
-            #[cfg(feature = "hysteresis-schmitt")]
             schmitt_state: SchmittState::Low,
         }
     }
@@ -57,11 +51,10 @@ impl<T> HysteresisMode<T>
 where
     T: Copy + PartialOrd + core::ops::Sub<Output = T> + core::ops::Add<Output = T>,
 {
-    pub fn apply(&self, input: T, #[allow(unused_variables)] state: &mut HysteresisState<T>) -> T {
+    pub fn apply(&self, input: T, state: &mut HysteresisState<T>) -> T {
         match self {
             HysteresisMode::None(_) => input,
 
-            #[cfg(feature = "hysteresis-threshold")]
             HysteresisMode::ChangeThreshold { threshold } => {
                 // Calculate absolute difference between input and last output
                 let diff = if input > state.last_output {
@@ -81,7 +74,6 @@ where
                 output
             }
 
-            #[cfg(feature = "hysteresis-schmitt")]
             HysteresisMode::SchmittTrigger { rising, falling } => {
                 // Update state based on thresholds
                 if input >= *rising {
@@ -106,10 +98,8 @@ where
         match self {
             HysteresisMode::None(_) => Ok(()),
 
-            #[cfg(feature = "hysteresis-threshold")]
             HysteresisMode::ChangeThreshold { .. } => Ok(()),
 
-            #[cfg(feature = "hysteresis-schmitt")]
             HysteresisMode::SchmittTrigger { rising, falling } => {
                 if rising <= falling {
                     Err("Schmitt trigger: rising threshold must be greater than falling threshold")

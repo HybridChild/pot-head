@@ -5,12 +5,8 @@ edition = "2024"
 publish = false
 
 [dependencies]
-pot-head = { path = "../..", features = ["hysteresis-threshold", "hysteresis-schmitt", "log-curve", "filter-ema", "snap-zone-snap", "snap-zone-dead", "grab-mode"] }
+pot-head = { path = "../..", features = ["std-math", "grab-mode"] }
 crossterm = "0.29"
 num-traits = { version = "0.2", default-features = false }
 rand = "0.9.2"
 rand_distr = "0.5.1"
-
-[features]
-default = ["log-curve"]
-log-curve = ["pot-head/log-curve"]

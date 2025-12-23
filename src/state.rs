@@ -1,8 +1,8 @@
 use crate::hysteresis::HysteresisState;
 
-#[cfg(feature = "filter-ema")]
 use crate::filters::EmaFilter;
-#[cfg(feature = "filter-moving-avg")]
+
+#[cfg(feature = "moving-average")]
 use crate::filters::MovingAvgFilter;
 
 pub struct State<T> {
@@ -10,11 +10,10 @@ pub struct State<T> {
     pub hysteresis: HysteresisState<T>,
 
     /// EMA filter state
-    #[cfg(feature = "filter-ema")]
     pub ema_filter: Option<EmaFilter>,
 
     /// Moving average filter state
-    #[cfg(feature = "filter-moving-avg")]
+    #[cfg(feature = "moving-average")]
     pub ma_filter: Option<MovingAvgFilter>,
 
     /// Last output value (for dead zones)
@@ -48,9 +47,8 @@ where
     fn default() -> Self {
         Self {
             hysteresis: HysteresisState::default(),
-            #[cfg(feature = "filter-ema")]
             ema_filter: None,
-            #[cfg(feature = "filter-moving-avg")]
+            #[cfg(feature = "moving-average")]
             ma_filter: None,
             last_output: T::default(),
             #[cfg(feature = "grab-mode")]

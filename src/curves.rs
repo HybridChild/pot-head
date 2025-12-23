@@ -10,8 +10,8 @@ pub enum ResponseCurve {
 
     /// Logarithmic response (audio taper).
     ///
-    /// Requires `log-curve` feature and `libm` dependency.
-    #[cfg(feature = "log-curve")]
+    /// Requires `std-math` feature and `libm` dependency.
+    #[cfg(feature = "std-math")]
     Logarithmic,
 }
 
@@ -24,7 +24,7 @@ impl ResponseCurve {
         match self {
             ResponseCurve::Linear => normalized,
 
-            #[cfg(feature = "log-curve")]
+            #[cfg(feature = "std-math")]
             ResponseCurve::Logarithmic => apply_logarithmic(normalized),
         }
     }
@@ -38,7 +38,7 @@ impl ResponseCurve {
 /// This gives perceptually linear volume control where:
 /// - Lower values spread out (fine control at low volumes)
 /// - Higher values compress (coarse control at high volumes)
-#[cfg(feature = "log-curve")]
+#[cfg(feature = "std-math")]
 #[inline]
 fn apply_logarithmic(normalized: f32) -> f32 {
     const E3_MINUS_1: f32 = 19.085_537; // e^3 - 1 precomputed
@@ -68,7 +68,7 @@ mod tests {
         assert_eq!(curve.apply(1.0), 1.0);
     }
 
-    #[cfg(feature = "log-curve")]
+    #[cfg(feature = "std-math")]
     #[test]
     fn test_logarithmic_curve() {
         let curve = ResponseCurve::Logarithmic;
@@ -107,7 +107,7 @@ mod tests {
         assert!(result_half < result_1);
     }
 
-    #[cfg(feature = "log-curve")]
+    #[cfg(feature = "std-math")]
     #[test]
     fn test_logarithmic_curve_clamping() {
         let curve = ResponseCurve::Logarithmic;

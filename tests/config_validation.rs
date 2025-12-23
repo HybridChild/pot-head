@@ -1,6 +1,9 @@
 use pot_head::{
-    Config, ConfigError, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone,
+    Config, ConfigError, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone,
 };
+
+#[cfg(feature = "grab-mode")]
+use pot_head::GrabMode;
 
 static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
@@ -15,6 +18,7 @@ fn test_invalid_input_range() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -33,6 +37,7 @@ fn test_inverted_input_range() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -51,6 +56,7 @@ fn test_invalid_output_range() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 

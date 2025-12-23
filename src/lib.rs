@@ -14,13 +14,10 @@ pub mod grab_mode;
 pub use config::{Config, ConfigError};
 pub use curves::ResponseCurve;
 pub use filters::NoiseFilter;
-pub use hysteresis::{HysteresisMode, HysteresisState};
+pub use hysteresis::{HysteresisMode, HysteresisState, SchmittState};
 pub use pothead::PotHead;
 pub use snap_zones::{SnapZone, SnapZoneType};
 pub use state::State;
 
 #[cfg(feature = "grab-mode")]
 pub use grab_mode::GrabMode;
-
-#[cfg(feature = "hysteresis-schmitt")]
-pub use hysteresis::SchmittState;

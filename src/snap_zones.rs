@@ -6,11 +6,9 @@
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SnapZoneType {
     /// Snap to target value when within threshold
-    #[cfg(feature = "snap-zone-snap")]
     Snap,
 
     /// Dead zone - ignore input changes within threshold
-    #[cfg(feature = "snap-zone-dead")]
     Dead,
 }
 
@@ -45,13 +43,9 @@ where
 
     /// Apply this zone's behavior to the input value.
     /// Assumes value is within the zone (call contains() first).
-    #[allow(unused_variables)]
     pub fn apply(&self, _value: T, last_output: T) -> T {
         match self.zone_type {
-            #[cfg(feature = "snap-zone-snap")]
             SnapZoneType::Snap => self.target,
-
-            #[cfg(feature = "snap-zone-dead")]
             SnapZoneType::Dead => last_output,
         }
     }
@@ -72,7 +66,6 @@ where
 mod tests {
     use super::*;
 
-    #[cfg(feature = "snap-zone-snap")]
     #[test]
     fn test_snap_zone_contains() {
         let zone = SnapZone::new(0.5, 0.1, SnapZoneType::Snap);
@@ -84,7 +77,6 @@ mod tests {
         assert!(!zone.contains(0.61)); // above
     }
 
-    #[cfg(feature = "snap-zone-snap")]
     #[test]
     fn test_snap_zone_apply() {
         let zone = SnapZone::new(0.5, 0.1, SnapZoneType::Snap);
@@ -94,7 +86,6 @@ mod tests {
         assert_eq!(zone.apply(0.55, 0.0), 0.5);
     }
 
-    #[cfg(feature = "snap-zone-dead")]
     #[test]
     fn test_dead_zone_apply() {
         let zone = SnapZone::new(0.5, 0.1, SnapZoneType::Dead);
@@ -104,7 +95,6 @@ mod tests {
         assert_eq!(zone.apply(0.55, 0.7), 0.7);
     }
 
-    #[cfg(feature = "snap-zone-snap")]
     #[test]
     fn test_snap_zone_overlaps() {
         let zone1 = SnapZone::new(0.0, 0.05, SnapZoneType::Snap); // range: -0.05 to 0.05
@@ -117,7 +107,6 @@ mod tests {
         assert!(zone3.overlaps(&zone1)); // Symmetric
     }
 
-    #[cfg(feature = "snap-zone-snap")]
     #[test]
     fn test_snap_zone_edge_cases() {
         let zone = SnapZone::new(0.0, 0.02, SnapZoneType::Snap);

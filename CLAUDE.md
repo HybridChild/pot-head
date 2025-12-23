@@ -59,11 +59,12 @@ v0.1 uses static ROM configuration exclusively:
 - **Builder pattern** deferred to v0.2+ (alongside calibration features)
 
 ### 4. Feature-Gated Compilation
-Granular Cargo features allow users to include only what they need:
+Three meaningful features control dependencies and optional functionality:
 ```toml
-default = ["hysteresis-threshold", "filter-ema"]
-audio = ["log-curve", "filter-ema", "grab-mode", "snap-zone-snap"]
-minimal = []  # Bare minimum
+default = ["std-math"]
+std-math = ["libm"]           # Logarithmic curves
+moving-average = ["heapless"] # Moving average filter
+grab-mode = []                # Pickup/PassThrough modes (~24-40 bytes)
 ```
 
 ### 5. Error Handling Strategy
@@ -76,7 +77,7 @@ minimal = []  # Bare minimum
 
 ### Code Organization
 - Each major feature in its own module
-- Feature-gate implementations with `#[cfg(feature = "...")]`
+- Feature-gate only dependency-driven code (libm, heapless) and grab-mode
 - Keep processing pipeline in `PotHead::update()` clean and linear
 
 ### Processing Pipeline
@@ -95,7 +96,7 @@ Input (TIn)
 - `update()` called in tight loops (1-10ms intervals)
 - Zero allocations (stack only)
 - Minimal branching in hot path
-- Feature-gated code compiles out completely when disabled
+- All processing modes compiled in by default (minimal overhead)
 
 ### Testing Strategy
 - Unit tests for each module
@@ -137,7 +138,7 @@ let volume: f32 = pot.update(adc_value);
 ## Documentation Requirements
 
 - All public APIs need doc comments
-- Feature-gated items should document the required feature
+- Feature-gated items should document the required feature (std-math, moving-average, grab-mode)
 - Demonstrate common use cases in interactive example
 - Safety notes for `unsafe` code (if any)
 - Performance characteristics (especially for filters)
@@ -147,8 +148,8 @@ let volume: f32 = pot.update(adc_value);
 ```toml
 [dependencies]
 num-traits = { version = "0.2", default-features = false }
-libm = { version = "0.2", optional = true }        # For log curves
-heapless = { version = "0.8", optional = true }    # For moving average buffer
+libm = { version = "0.2", optional = true }        # For logarithmic curves (std-math feature)
+heapless = { version = "0.9", optional = true }    # For moving average filter (moving-average feature)
 ```
 
 ## Reference Documentation

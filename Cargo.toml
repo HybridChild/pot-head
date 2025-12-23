@@ -16,14 +16,11 @@ libm = { version = "0.2", optional = true }
 heapless = { version = "0.9.2", optional = true }
 
 [features]
-default = ["hysteresis-threshold", "filter-ema", "grab-mode"]
-hysteresis-threshold = []
-hysteresis-schmitt = []
-log-curve = ["libm"]
-filter-ema = []
-filter-moving-avg = ["heapless"]
-snap-zone-snap = []
-snap-zone-dead = []
-# Grab mode adds ~24-40 bytes per PotHead instance (depends on output type)
-# Disable if you don't need Pickup/PassThrough modes for preset/automation handling
+default = ["std-math", "grab-mode"]
+# Enables logarithmic response curves via libm
+std-math = ["libm"]
+# Enables moving average filter (requires heapless buffer)
+moving-average = ["heapless"]
+# Enables grab modes (Pickup/PassThrough) for preset/automation handling
+# Adds ~24-40 bytes per PotHead instance depending on output type
 grab-mode = []

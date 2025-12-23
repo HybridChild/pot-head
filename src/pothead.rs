@@ -7,9 +7,9 @@ use crate::state::State;
 #[cfg(feature = "grab-mode")]
 use crate::grab_mode::GrabMode;
 
-#[cfg(feature = "filter-ema")]
 use crate::filters::EmaFilter;
-#[cfg(feature = "filter-moving-avg")]
+
+#[cfg(feature = "moving-average")]
 use crate::filters::MovingAvgFilter;
 
 pub struct PotHead<TIn, TOut = TIn> {
@@ -29,12 +29,11 @@ where
         let mut state = State::default();
 
         // Initialize filter state based on configuration
-        #[cfg(feature = "filter-ema")]
         if matches!(config.filter, NoiseFilter::ExponentialMovingAverage { .. }) {
             state.ema_filter = Some(EmaFilter::new());
         }
 
-        #[cfg(feature = "filter-moving-avg")]
+        #[cfg(feature = "moving-average")]
         if let NoiseFilter::MovingAverage { window_size } = config.filter {
             state.ma_filter = Some(MovingAvgFilter::new(window_size));
         }
@@ -89,7 +88,6 @@ where
         match &self.config.filter {
             NoiseFilter::None => value,
 
-            #[cfg(feature = "filter-ema")]
             NoiseFilter::ExponentialMovingAverage { alpha } => {
                 if let Some(ref mut filter) = self.state.ema_filter {
                     filter.apply(value, *alpha)
@@ -98,7 +96,7 @@ where
                 }
             }
 
-            #[cfg(feature = "filter-moving-avg")]
+            #[cfg(feature = "moving-average")]
             NoiseFilter::MovingAverage { .. } => {
                 if let Some(ref mut filter) = self.state.ma_filter {
                     filter.apply(value)
