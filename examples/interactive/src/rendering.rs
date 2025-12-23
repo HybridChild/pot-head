@@ -6,7 +6,7 @@ use crossterm::{
     style::{Color, Print, ResetColor, SetForegroundColor},
     terminal::{Clear, ClearType},
 };
-use std::io::{stdout, Result, Write};
+use std::io::{Result, Write, stdout};
 
 // Bar properties
 pub const BAR_WIDTH: usize = 64;
@@ -73,9 +73,9 @@ pub fn render_bar(
         let is_threshold = threshold_positions_idx.contains(&i);
 
         // Check if this position is in a snap zone
-        let in_snap_zone = snap_zones.iter().find(|zone| {
-            normalized_pos >= zone.min && normalized_pos <= zone.max
-        });
+        let in_snap_zone = snap_zones
+            .iter()
+            .find(|zone| normalized_pos >= zone.min && normalized_pos <= zone.max);
 
         // Physical indicator has priority (drawn on top)
         if is_physical {
@@ -132,17 +132,11 @@ pub fn render(state: &mut AppState) -> Result<()> {
         Print(""),
         MoveTo(0, 1),
         SetForegroundColor(Color::Blue),
-        Print(
-            "╔════════════════════════════════════════════════════════════════════════╗"
-        ),
+        Print("╔════════════════════════════════════════════════════════════════════════╗"),
         MoveTo(0, 2),
-        Print(
-            "║                      pot-head Interactive Demo                         ║"
-        ),
+        Print("║                      pot-head Interactive Demo                         ║"),
         MoveTo(0, 3),
-        Print(
-            "╠════════════════════════════════════════════════════════════════════════╣"
-        ),
+        Print("╠════════════════════════════════════════════════════════════════════════╣"),
         ResetColor,
         MoveTo(0, 4),
         Print(""),
@@ -216,11 +210,7 @@ pub fn render(state: &mut AppState) -> Result<()> {
             stdout,
             MoveTo(0, line),
             SetForegroundColor(colors.bar_color),
-            Print(format!(
-                "   {} {}",
-                selection_marker,
-                info.label,
-            )),
+            Print(format!("   {} {}", selection_marker, info.label,)),
             ResetColor,
         )?;
         line += 1;
@@ -230,10 +220,7 @@ pub fn render(state: &mut AppState) -> Result<()> {
             MoveTo(0, line),
             Print(format!(
                 "     Input  [{} - {}]: {}  (Hysteresis: {})",
-                info.input_range.0,
-                info.input_range.1,
-                info.input_value,
-                info.hysteresis_info,
+                info.input_range.0, info.input_range.1, info.input_value, info.hysteresis_info,
             )),
         )?;
         line += 1;
@@ -243,9 +230,7 @@ pub fn render(state: &mut AppState) -> Result<()> {
             MoveTo(0, line),
             Print(format!(
                 "     Output [{} - {}]: {}",
-                info.output_range.0,
-                info.output_range.1,
-                info.output_value,
+                info.output_range.0, info.output_range.1, info.output_value,
             )),
         )?;
         line += 1;
@@ -290,9 +275,7 @@ pub fn render(state: &mut AppState) -> Result<()> {
         stdout,
         MoveTo(0, line),
         SetForegroundColor(Color::Blue),
-        Print(
-            "╠════════════════════════════════════════════════════════════════════════╣"
-        ),
+        Print("╠════════════════════════════════════════════════════════════════════════╣"),
     )?;
     line += 1;
 
@@ -300,23 +283,43 @@ pub fn render(state: &mut AppState) -> Result<()> {
         stdout,
         MoveTo(0, line),
         Print("║  Legend:  "),
-        SetForegroundColor(Color::Rgb { r: 255, g: 165, b: 0 }),
+        SetForegroundColor(Color::Rgb {
+            r: 255,
+            g: 165,
+            b: 0
+        }),
         Print("|"),
         SetForegroundColor(Color::Blue),
         Print(" Physical  "),
-        SetForegroundColor(Color::Rgb { r: 0, g: 200, b: 255 }),
+        SetForegroundColor(Color::Rgb {
+            r: 0,
+            g: 200,
+            b: 255
+        }),
         Print("<◯>"),
         SetForegroundColor(Color::Blue),
         Print(" Processed  "),
-        SetForegroundColor(Color::Rgb { r: 150, g: 150, b: 150 }),
+        SetForegroundColor(Color::Rgb {
+            r: 150,
+            g: 150,
+            b: 150
+        }),
         Print("┊"),
         SetForegroundColor(Color::Blue),
         Print(" Hyst  "),
-        SetForegroundColor(Color::Rgb { r: 100, g: 200, b: 255 }),
+        SetForegroundColor(Color::Rgb {
+            r: 100,
+            g: 200,
+            b: 255
+        }),
         Print("-"),
         SetForegroundColor(Color::Blue),
         Print(" Snap  "),
-        SetForegroundColor(Color::Rgb { r: 100, g: 100, b: 100 }),
+        SetForegroundColor(Color::Rgb {
+            r: 100,
+            g: 100,
+            b: 100
+        }),
         Print("-"),
         SetForegroundColor(Color::Blue),
         Print(" Dead   ║"),
@@ -327,27 +330,21 @@ pub fn render(state: &mut AppState) -> Result<()> {
     queue!(
         stdout,
         MoveTo(0, line),
-        Print(
-            "╠════════════════════════════════════════════════════════════════════════╣"
-        ),
+        Print("╠════════════════════════════════════════════════════════════════════════╣"),
     )?;
     line += 1;
 
     queue!(
         stdout,
         MoveTo(0, line),
-        Print(
-            "║  ← → adjust input  |  + - noise  |  ↑ ↓ select pot  |  q/Esc quit      ║"
-        ),
+        Print("║  ← → adjust input  |  + - noise  |  ↑ ↓ select pot  |  q/Esc quit      ║"),
     )?;
     line += 1;
 
     queue!(
         stdout,
         MoveTo(0, line),
-        Print(
-            "╚════════════════════════════════════════════════════════════════════════╝"
-        ),
+        Print("╚════════════════════════════════════════════════════════════════════════╝"),
         ResetColor,
     )?;
 

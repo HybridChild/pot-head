@@ -1,5 +1,5 @@
 use crate::color_scheme::ColorScheme;
-use crate::renderable_pot::{RenderInfo, RenderablePot, SnapZoneRange, SnapZoneKind};
+use crate::renderable_pot::{RenderInfo, RenderablePot, SnapZoneKind, SnapZoneRange};
 use num_traits::AsPrimitive;
 use pot_head::{HysteresisMode, PotHead, SnapZoneType};
 use std::fmt::Display;
@@ -92,7 +92,9 @@ where
         // Format hysteresis info
         let hysteresis_info = match &config.hysteresis {
             HysteresisMode::None(_) => "None".to_string(),
-            HysteresisMode::ChangeThreshold { threshold } => format!("Threshold: {:.1}%", threshold * 100.0),
+            HysteresisMode::ChangeThreshold { threshold } => {
+                format!("Threshold: {:.1}%", threshold * 100.0)
+            }
             HysteresisMode::SchmittTrigger { rising, falling } => {
                 format!("Schmitt: ↑{:.0}% ↓{:.0}%", rising * 100.0, falling * 100.0)
             }
@@ -151,7 +153,8 @@ where
         };
 
         // Convert snap zones to render ranges
-        let snap_zones = config.snap_zones
+        let snap_zones = config
+            .snap_zones
             .iter()
             .map(|zone| {
                 let min = (zone.target - zone.threshold).max(0.0);

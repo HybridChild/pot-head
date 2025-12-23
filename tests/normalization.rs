@@ -1,4 +1,4 @@
-use pot_head::{GrabMode, Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+use pot_head::{Config, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
 
 static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
@@ -30,7 +30,11 @@ fn test_u16_to_u16_normalization() {
 
     // Test quarter point
     let quarter = pot.update(1023);
-    assert!(quarter >= 63 && quarter <= 64, "Quarter value was {}", quarter);
+    assert!(
+        quarter >= 63 && quarter <= 64,
+        "Quarter value was {}",
+        quarter
+    );
 }
 
 #[test]
@@ -61,7 +65,11 @@ fn test_u16_to_f32_normalization() {
 
     // Test quarter
     let quarter = pot.update(1023);
-    assert!((quarter - 0.25).abs() < 0.01, "Quarter value was {}", quarter);
+    assert!(
+        (quarter - 0.25).abs() < 0.01,
+        "Quarter value was {}",
+        quarter
+    );
 }
 
 #[test]

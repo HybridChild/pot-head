@@ -70,7 +70,8 @@ mod ema_tests {
 
     fn variance(data: &[f32]) -> f32 {
         let mean: f32 = data.iter().sum::<f32>() / data.len() as f32;
-        let variance: f32 = data.iter().map(|x| (x - mean).powi(2)).sum::<f32>() / data.len() as f32;
+        let variance: f32 =
+            data.iter().map(|x| (x - mean).powi(2)).sum::<f32>() / data.len() as f32;
         variance
     }
 }
@@ -175,13 +176,9 @@ mod comparison_tests {
 
         let noisy = [1.0, 1.1, 0.9, 1.05, 0.95, 1.0];
 
-        let ema_outputs: Vec<f32> = noisy.iter()
-            .map(|&x| ema.apply(x, 0.3))
-            .collect();
+        let ema_outputs: Vec<f32> = noisy.iter().map(|&x| ema.apply(x, 0.3)).collect();
 
-        let ma_outputs: Vec<f32> = noisy.iter()
-            .map(|&x| ma.apply(x))
-            .collect();
+        let ma_outputs: Vec<f32> = noisy.iter().map(|&x| ma.apply(x)).collect();
 
         // Both should produce smoother output than input
         // Just verify they produce reasonable values

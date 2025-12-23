@@ -1,8 +1,8 @@
 use pot_head::hysteresis::{HysteresisMode, HysteresisState};
 
+use core::marker::PhantomData;
 #[cfg(feature = "hysteresis-schmitt")]
 use pot_head::hysteresis::SchmittState;
-use core::marker::PhantomData;
 
 #[test]
 fn test_none_passes_through() {

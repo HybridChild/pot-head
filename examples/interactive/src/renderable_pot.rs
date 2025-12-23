@@ -16,12 +16,12 @@ pub struct SnapZoneRange {
 /// Information needed to render a pot in the UI
 pub struct RenderInfo {
     pub label: String,
-    pub hysteresis_info: String,       // Formatted hysteresis configuration
-    pub input_value: String,           // Formatted input value
+    pub hysteresis_info: String, // Formatted hysteresis configuration
+    pub input_value: String,     // Formatted input value
     pub input_range: (String, String), // (min, max) formatted for display
-    pub output_value: String,          // Formatted output value
+    pub output_value: String,    // Formatted output value
     pub output_range: (String, String), // (min, max) formatted for display
-    pub output_position: f32,          // Normalized 0.0-1.0 for bar rendering
+    pub output_position: f32,    // Normalized 0.0-1.0 for bar rendering
     pub threshold_positions: Vec<f32>, // Normalized threshold positions for visual indicators
     pub snap_zones: Vec<SnapZoneRange>, // Snap zone ranges for bar coloring
 }

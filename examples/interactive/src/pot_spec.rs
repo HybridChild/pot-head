@@ -3,18 +3,40 @@ use crate::pot_adapter::PotAdapter;
 use crate::renderable_pot::RenderablePot;
 use crossterm::style::Color;
 use num_traits::AsPrimitive;
-use pot_head::{Config, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone, SnapZoneType};
+use pot_head::{
+    Config, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone, SnapZoneType,
+};
 use std::fmt::Display;
 use std::io::Result;
 
 // Default color scheme for all pots
 const DEFAULT_COLOR_SCHEME: ColorScheme = ColorScheme {
     bar_color: Color::Rgb { r: 0, g: 255, b: 0 },
-    processed_indicator_color: Color::Rgb { r: 0, g: 200, b: 255 },
-    physical_indicator_color: Color::Rgb { r: 255, g: 165, b: 0 },
-    threshold_color: Color::Rgb { r: 150, g: 150, b: 150 },
-    snap_zone_color: Color::Rgb { r: 100, g: 200, b: 255 },  // Light blue for snap zones
-    dead_zone_color: Color::Rgb { r: 100, g: 100, b: 100 },  // Gray for dead zones
+    processed_indicator_color: Color::Rgb {
+        r: 0,
+        g: 200,
+        b: 255,
+    },
+    physical_indicator_color: Color::Rgb {
+        r: 255,
+        g: 165,
+        b: 0,
+    },
+    threshold_color: Color::Rgb {
+        r: 150,
+        g: 150,
+        b: 150,
+    },
+    snap_zone_color: Color::Rgb {
+        r: 100,
+        g: 200,
+        b: 255,
+    }, // Light blue for snap zones
+    dead_zone_color: Color::Rgb {
+        r: 100,
+        g: 100,
+        b: 100,
+    }, // Gray for dead zones
 };
 
 /// Specification for creating a pot with all its display properties
@@ -110,7 +132,10 @@ pub const SCHMITT_POT: PotSpec<u16, i32> = PotSpec {
     input_max: 4095,
     output_min: 0,
     output_max: 127,
-    hysteresis: HysteresisMode::SchmittTrigger { rising: 0.6, falling: 0.4 },
+    hysteresis: HysteresisMode::SchmittTrigger {
+        rising: 0.6,
+        falling: 0.4,
+    },
     curve: ResponseCurve::Linear,
     filter: NoiseFilter::None,
     snap_zones: &EMPTY_SNAP_ZONES,
@@ -151,9 +176,9 @@ pub const FILTERED_POT: PotSpec<u16, f32> = PotSpec {
 
 // Snap zones configuration for SNAP_POT
 static SNAP_POT_ZONES: [SnapZone<f32>; 3] = [
-    SnapZone::new(0.0, 0.1, SnapZoneType::Snap),   // Snap to 0% (±10%)
-    SnapZone::new(0.5, 0.1, SnapZoneType::Dead),   // Dead zone at 50% (±10%)
-    SnapZone::new(1.0, 0.1, SnapZoneType::Snap),   // Snap to 100% (±10%)
+    SnapZone::new(0.0, 0.1, SnapZoneType::Snap), // Snap to 0% (±10%)
+    SnapZone::new(0.5, 0.1, SnapZoneType::Dead), // Dead zone at 50% (±10%)
+    SnapZone::new(1.0, 0.1, SnapZoneType::Snap), // Snap to 100% (±10%)
 ];
 
 pub const SNAP_POT: PotSpec<u16, f32> = PotSpec {
@@ -171,7 +196,7 @@ pub const SNAP_POT: PotSpec<u16, f32> = PotSpec {
     precision: 3,
 };
 
-pub const PICKUP_POT: PotSpec<u16, f32> = PotSpec {
+pub const _PICKUP_POT: PotSpec<u16, f32> = PotSpec {
     label: "Pickup Mode Pot",
     input_min: 0,
     input_max: 4095,

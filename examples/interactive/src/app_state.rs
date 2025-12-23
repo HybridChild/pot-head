@@ -1,4 +1,6 @@
-use crate::pot_spec::{LOG_POT, RAW_POT, REVERSED_POT, SCHMITT_POT, FILTERED_POT, SNAP_POT, PASSTHROUGH_POT};
+use crate::pot_spec::{
+    FILTERED_POT, LOG_POT, PASSTHROUGH_POT, RAW_POT, REVERSED_POT, SCHMITT_POT, SNAP_POT,
+};
 use crate::renderable_pot::RenderablePot;
 use crate::rendering::BAR_WIDTH;
 use rand_distr::{Distribution, Normal};
@@ -10,7 +12,7 @@ const NOISE_STEP_SIZE: f32 = 0.05; // 5% increments for noise level
 
 pub struct AppState {
     pub normalized_input: f32, // Always 0.0 to 1.0 (clean input before noise)
-    pub noise_level: f32,       // 0.0 to 1.0, controls noise amplitude
+    pub noise_level: f32,      // 0.0 to 1.0, controls noise amplitude
     pub pots: Vec<Box<dyn RenderablePot>>,
     pub selected_pot_index: usize,
     pub running: bool,

@@ -77,13 +77,25 @@ mod tests {
         let result_0 = curve.apply(0.0);
         let result_1 = curve.apply(1.0);
 
-        assert!((result_0 - 0.0).abs() < 0.001, "Expected ~0.0, got {}", result_0);
-        assert!((result_1 - 1.0).abs() < 0.001, "Expected ~1.0, got {}", result_1);
+        assert!(
+            (result_0 - 0.0).abs() < 0.001,
+            "Expected ~0.0, got {}",
+            result_0
+        );
+        assert!(
+            (result_1 - 1.0).abs() < 0.001,
+            "Expected ~1.0, got {}",
+            result_1
+        );
 
         // Logarithmic curve should have more resolution at lower values
         // i.e., output at 0.25 should be significantly less than 0.25
         let result_quarter = curve.apply(0.25);
-        assert!(result_quarter < 0.15, "Expected <0.15, got {}", result_quarter);
+        assert!(
+            result_quarter < 0.15,
+            "Expected <0.15, got {}",
+            result_quarter
+        );
 
         // Output at 0.5 should be less than 0.5 (shifted down)
         let result_half = curve.apply(0.5);

@@ -1,4 +1,4 @@
-use pot_head::{GrabMode, Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+use pot_head::{Config, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
 
 static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
@@ -52,12 +52,12 @@ fn test_pothead_with_moving_average_filter() {
     let mut pot = PotHead::new(config).expect("Valid config");
 
     // Build up moving average
-    assert_eq!(pot.update(0), 0.0);    // [0.0] avg = 0.0
-    assert_eq!(pot.update(30), 0.15);  // [0.0, 0.3] avg = 0.15
-    assert_eq!(pot.update(60), 0.3);   // [0.0, 0.3, 0.6] avg = 0.3
+    assert_eq!(pot.update(0), 0.0); // [0.0] avg = 0.0
+    assert_eq!(pot.update(30), 0.15); // [0.0, 0.3] avg = 0.15
+    assert_eq!(pot.update(60), 0.3); // [0.0, 0.3, 0.6] avg = 0.3
 
     // Window slides
-    let out = pot.update(90);  // [0.9, 0.3, 0.6] avg = 0.6
+    let out = pot.update(90); // [0.9, 0.3, 0.6] avg = 0.6
     assert!((out - 0.6).abs() < 0.001, "Expected 0.6, got {}", out);
 }
 
@@ -100,7 +100,11 @@ fn test_filter_smooths_noisy_input() {
         / 4.0;
 
     // Variance should be relatively small due to filtering
-    assert!(variance < 20.0, "Variance {} too high - filtering not working", variance);
+    assert!(
+        variance < 20.0,
+        "Variance {} too high - filtering not working",
+        variance
+    );
 }
 
 #[test]
@@ -147,7 +151,7 @@ fn test_filter_combined_with_hysteresis() {
     assert!((initial - 0.5).abs() < 0.001);
 
     // Small change - filtered but still below hysteresis threshold
-    let out2 = pot.update(550);  // Filtered to ~0.525, below 0.1 threshold
+    let out2 = pot.update(550); // Filtered to ~0.525, below 0.1 threshold
     // Should stay at 0.5 due to hysteresis
     assert_eq!(out2, initial);
 

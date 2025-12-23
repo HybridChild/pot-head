@@ -1,4 +1,4 @@
-use pot_head::{Config, PotHead, GrabMode, HysteresisMode, ResponseCurve, NoiseFilter};
+use pot_head::{Config, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve};
 
 fn create_test_config(grab_mode: GrabMode) -> Config<u16, f32> {
     Config {

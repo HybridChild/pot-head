@@ -9,7 +9,7 @@ fn main() {
     println!("=== pot-head Filtering Examples ===\n");
 
     let noisy_samples = [2048, 2100, 2000, 2080, 1990, 2050, 2020, 2060];
-    
+
     // Example 1: No Filter (for comparison)
     println!("1. No Filter (raw passthrough)");
     let config = Config {
@@ -21,7 +21,7 @@ fn main() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
     };
-    
+
     let mut pot = PotHead::new(config).expect("Valid config");
 
     println!("   Input → Output");

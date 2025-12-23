@@ -1,8 +1,8 @@
 use num_traits::AsPrimitive;
 
 use crate::config::{Config, ConfigError};
-use crate::state::State;
 use crate::filters::NoiseFilter;
+use crate::state::State;
 
 #[cfg(feature = "grab-mode")]
 use crate::grab_mode::GrabMode;
@@ -57,7 +57,10 @@ where
         let curved = self.config.curve.apply(filtered);
 
         // Apply hysteresis
-        let hysteresis_applied = self.config.hysteresis.apply(curved, &mut self.state.hysteresis);
+        let hysteresis_applied = self
+            .config
+            .hysteresis
+            .apply(curved, &mut self.state.hysteresis);
 
         // Capture physical position BEFORE snap zones and grab mode
         #[cfg(feature = "grab-mode")]
@@ -178,13 +181,11 @@ where
                     }
 
                     // Check if pot crosses virtual value from either direction
-                    let crossing_from_below =
-                        value >= self.state.virtual_value &&
-                        self.state.last_physical < self.state.virtual_value;
+                    let crossing_from_below = value >= self.state.virtual_value
+                        && self.state.last_physical < self.state.virtual_value;
 
-                    let crossing_from_above =
-                        value <= self.state.virtual_value &&
-                        self.state.last_physical > self.state.virtual_value;
+                    let crossing_from_above = value <= self.state.virtual_value
+                        && self.state.last_physical > self.state.virtual_value;
 
                     if crossing_from_below || crossing_from_above {
                         self.state.grabbed = true;
@@ -226,8 +227,10 @@ where
     /// When true, `physical_position() != current_output()`
     #[cfg(feature = "grab-mode")]
     pub fn is_waiting_for_grab(&self) -> bool {
-        matches!(self.config.grab_mode, GrabMode::Pickup | GrabMode::PassThrough)
-            && !self.state.grabbed
+        matches!(
+            self.config.grab_mode,
+            GrabMode::Pickup | GrabMode::PassThrough
+        ) && !self.state.grabbed
     }
 
     /// Set the virtual parameter value (e.g., after preset change or automation).

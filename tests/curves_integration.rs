@@ -1,4 +1,4 @@
-use pot_head::{GrabMode, Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+use pot_head::{Config, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
 
 static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
@@ -45,16 +45,32 @@ fn test_logarithmic_curve_integration() {
     let min_output = pot.update(0);
     let max_output = pot.update(100);
 
-    assert!((min_output - 0.0).abs() < 0.001, "Min should be ~0.0, got {}", min_output);
-    assert!((max_output - 1.0).abs() < 0.001, "Max should be ~1.0, got {}", max_output);
+    assert!(
+        (min_output - 0.0).abs() < 0.001,
+        "Min should be ~0.0, got {}",
+        min_output
+    );
+    assert!(
+        (max_output - 1.0).abs() < 0.001,
+        "Max should be ~1.0, got {}",
+        max_output
+    );
 
     // Logarithmic curve should compress lower values
     let quarter_output = pot.update(25);
-    assert!(quarter_output < 0.15, "Quarter should be <0.2 with log curve, got {}", quarter_output);
+    assert!(
+        quarter_output < 0.15,
+        "Quarter should be <0.2 with log curve, got {}",
+        quarter_output
+    );
 
     // Middle should be less than 0.5 (shifted down)
     let mid_output = pot.update(50);
-    assert!(mid_output < 0.5, "Middle should be <0.5 with log curve, got {}", mid_output);
+    assert!(
+        mid_output < 0.5,
+        "Middle should be <0.5 with log curve, got {}",
+        mid_output
+    );
 
     // Should be monotonically increasing
     assert!(min_output < quarter_output);

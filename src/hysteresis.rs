@@ -17,7 +17,7 @@ pub enum HysteresisMode<T> {
 
     /// Ignore changes smaller than threshold
     #[cfg(feature = "hysteresis-threshold")]
-    ChangeThreshold{threshold: T},
+    ChangeThreshold { threshold: T },
 
     /// Separate rising/falling thresholds to prevent boundary oscillation
     #[cfg(feature = "hysteresis-schmitt")]

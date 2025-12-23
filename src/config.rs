@@ -1,8 +1,8 @@
 use num_traits::AsPrimitive;
 
-use crate::hysteresis::HysteresisMode;
 use crate::curves::ResponseCurve;
 use crate::filters::NoiseFilter;
+use crate::hysteresis::HysteresisMode;
 use crate::snap_zones::SnapZone;
 
 #[cfg(feature = "grab-mode")]

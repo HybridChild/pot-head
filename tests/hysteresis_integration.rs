@@ -1,4 +1,4 @@
-use pot_head::{GrabMode, Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+use pot_head::{Config, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
 
 static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
@@ -24,11 +24,17 @@ fn test_pothead_with_no_hysteresis() {
 
     // Small change should pass through (no hysteresis blocking it)
     let output2 = pot.update(2049);
-    assert!(output2 > output1, "Small changes should pass through with no hysteresis");
+    assert!(
+        output2 > output1,
+        "Small changes should pass through with no hysteresis"
+    );
 
     // Another small change should also pass through
     let output3 = pot.update(2050);
-    assert!(output3 > output2, "Every change should update with no hysteresis");
+    assert!(
+        output3 > output2,
+        "Every change should update with no hysteresis"
+    );
 }
 
 #[cfg(feature = "hysteresis-threshold")]
@@ -157,7 +163,7 @@ fn test_invalid_schmitt_config() {
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
         hysteresis: HysteresisMode::SchmittTrigger {
-            rising: 0.4,  // Invalid: rising <= falling
+            rising: 0.4, // Invalid: rising <= falling
             falling: 0.6,
         },
     };
