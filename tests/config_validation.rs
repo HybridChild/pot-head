@@ -1,4 +1,6 @@
-use pot_head::{Config, ConfigError, HysteresisMode, NoiseFilter, PotHead, ResponseCurve};
+use pot_head::{Config, ConfigError, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+
+static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
 #[test]
 fn test_invalid_input_range() {
@@ -10,6 +12,7 @@ fn test_invalid_input_range() {
         hysteresis: HysteresisMode::none(),
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
+        snap_zones: &EMPTY_SNAP_ZONES,
     };
 
     let result = PotHead::new(config);
@@ -26,6 +29,7 @@ fn test_inverted_input_range() {
         hysteresis: HysteresisMode::none(),
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
+        snap_zones: &EMPTY_SNAP_ZONES,
     };
 
     let result = PotHead::new(config);
@@ -42,6 +46,7 @@ fn test_invalid_output_range() {
         hysteresis: HysteresisMode::none(),
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
+        snap_zones: &EMPTY_SNAP_ZONES,
     };
 
     let result = PotHead::new(config);

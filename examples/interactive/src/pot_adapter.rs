@@ -1,7 +1,7 @@
 use crate::color_scheme::ColorScheme;
-use crate::renderable_pot::{RenderInfo, RenderablePot};
+use crate::renderable_pot::{RenderInfo, RenderablePot, SnapZoneRange, SnapZoneKind};
 use num_traits::AsPrimitive;
-use pot_head::{HysteresisMode, PotHead};
+use pot_head::{HysteresisMode, PotHead, SnapZoneType};
 use std::fmt::Display;
 
 /// Adapts a PotHead<TIn, TOut> to the RenderablePot trait
@@ -150,6 +150,20 @@ where
             }
         };
 
+        // Convert snap zones to render ranges
+        let snap_zones = config.snap_zones
+            .iter()
+            .map(|zone| {
+                let min = (zone.target - zone.threshold).max(0.0);
+                let max = (zone.target + zone.threshold).min(1.0);
+                let kind = match zone.zone_type {
+                    SnapZoneType::Snap => SnapZoneKind::Snap,
+                    SnapZoneType::Dead => SnapZoneKind::Dead,
+                };
+                SnapZoneRange { min, max, kind }
+            })
+            .collect();
+
         RenderInfo {
             label: self.label.to_string(),
             hysteresis_info,
@@ -165,6 +179,7 @@ where
             ),
             output_position,
             threshold_positions,
+            snap_zones,
         }
     }
 

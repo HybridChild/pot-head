@@ -1,4 +1,5 @@
 use crate::app_state::AppState;
+use crate::renderable_pot::SnapZoneRange;
 use crossterm::{
     cursor::MoveTo,
     queue,
@@ -20,7 +21,10 @@ pub fn render_bar(
     processed_indicator_color: Color,
     physical_indicator_color: Color,
     threshold_color: Color,
+    snap_zone_color: Color,
+    dead_zone_color: Color,
     threshold_positions: &[f32],
+    snap_zones: &[SnapZoneRange],
 ) -> String {
     let processed_normalized = ((processed_value - min) / (max - min)).clamp(0.0, 1.0);
     let physical_normalized = ((physical_value - min) / (max - min)).clamp(0.0, 1.0);
@@ -54,6 +58,9 @@ pub fn render_bar(
 
     // Build the bar character by character
     for i in 0..inner_width {
+        // Normalize position to 0.0-1.0
+        let normalized_pos = i as f32 / (inner_width - 1) as f32;
+
         // Check if we need to render the processed indicator "< >" at this position
         let is_processed_left = i + 1 == processed_pos;
         let is_processed_center = i == processed_pos;
@@ -64,6 +71,11 @@ pub fn render_bar(
 
         // Check if we need to render a threshold marker at this position
         let is_threshold = threshold_positions_idx.contains(&i);
+
+        // Check if this position is in a snap zone
+        let in_snap_zone = snap_zones.iter().find(|zone| {
+            normalized_pos >= zone.min && normalized_pos <= zone.max
+        });
 
         // Physical indicator has priority (drawn on top)
         if is_physical {
@@ -85,6 +97,16 @@ pub fn render_bar(
         } else if is_threshold {
             bar.push_str(&set_color(threshold_color));
             bar.push('┊');
+            bar.push_str(&set_color(bar_color));
+        } else if let Some(zone) = in_snap_zone {
+            // Color the dash based on snap zone type
+            use crate::renderable_pot::SnapZoneKind;
+            let zone_color = match zone.kind {
+                SnapZoneKind::Snap => snap_zone_color,
+                SnapZoneKind::Dead => dead_zone_color,
+            };
+            bar.push_str(&set_color(zone_color));
+            bar.push('-');
             bar.push_str(&set_color(bar_color));
         } else {
             bar.push('-');
@@ -250,7 +272,10 @@ pub fn render(state: &mut AppState) -> Result<()> {
                     colors.processed_indicator_color,
                     colors.physical_indicator_color,
                     colors.threshold_color,
-                    &info.threshold_positions
+                    colors.snap_zone_color,
+                    colors.dead_zone_color,
+                    &info.threshold_positions,
+                    &info.snap_zones
                 )
             )),
         )?;
@@ -278,15 +303,23 @@ pub fn render(state: &mut AppState) -> Result<()> {
         SetForegroundColor(Color::Rgb { r: 255, g: 165, b: 0 }),
         Print("|"),
         SetForegroundColor(Color::Blue),
-        Print(" Physical Input  "),
+        Print(" Physical  "),
         SetForegroundColor(Color::Rgb { r: 0, g: 200, b: 255 }),
         Print("<◯>"),
         SetForegroundColor(Color::Blue),
-        Print(" Processed Output  "),
+        Print(" Processed  "),
         SetForegroundColor(Color::Rgb { r: 150, g: 150, b: 150 }),
         Print("┊"),
         SetForegroundColor(Color::Blue),
-        Print(" Hyst threshold     ║"),
+        Print(" Hyst  "),
+        SetForegroundColor(Color::Rgb { r: 100, g: 200, b: 255 }),
+        Print("-"),
+        SetForegroundColor(Color::Blue),
+        Print(" Snap  "),
+        SetForegroundColor(Color::Rgb { r: 100, g: 100, b: 100 }),
+        Print("-"),
+        SetForegroundColor(Color::Blue),
+        Print(" Dead   ║"),
     )?;
     line += 1;
 

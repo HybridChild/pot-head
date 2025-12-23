@@ -1,4 +1,4 @@
-use crate::pot_spec::{LOG_POT, RAW_POT, REVERSED_POT, SCHMITT_POT, FILTERED_POT};
+use crate::pot_spec::{LOG_POT, RAW_POT, REVERSED_POT, SCHMITT_POT, FILTERED_POT, SNAP_POT};
 use crate::renderable_pot::RenderablePot;
 use crate::rendering::BAR_WIDTH;
 use rand_distr::{Distribution, Normal};
@@ -23,6 +23,7 @@ impl AppState {
             FILTERED_POT.build()?,
             LOG_POT.build()?,
             SCHMITT_POT.build()?,
+            SNAP_POT.build()?,
             REVERSED_POT.build()?,
         ];
 

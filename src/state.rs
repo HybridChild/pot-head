@@ -16,6 +16,9 @@ pub struct State<T> {
     /// Moving average filter state
     #[cfg(feature = "filter-moving-avg")]
     pub ma_filter: Option<MovingAvgFilter>,
+
+    /// Last output value (for dead zones)
+    pub last_output: T,
 }
 
 impl<T> Default for State<T>
@@ -29,6 +32,7 @@ where
             ema_filter: None,
             #[cfg(feature = "filter-moving-avg")]
             ma_filter: None,
+            last_output: T::default(),
         }
     }
 }

@@ -1,5 +1,18 @@
 use crate::color_scheme::ColorScheme;
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum SnapZoneKind {
+    Snap,
+    Dead,
+}
+
+/// Snap zone range for rendering (normalized 0.0-1.0)
+pub struct SnapZoneRange {
+    pub min: f32,
+    pub max: f32,
+    pub kind: SnapZoneKind,
+}
+
 /// Information needed to render a pot in the UI
 pub struct RenderInfo {
     pub label: String,
@@ -10,6 +23,7 @@ pub struct RenderInfo {
     pub output_range: (String, String), // (min, max) formatted for display
     pub output_position: f32,          // Normalized 0.0-1.0 for bar rendering
     pub threshold_positions: Vec<f32>, // Normalized threshold positions for visual indicators
+    pub snap_zones: Vec<SnapZoneRange>, // Snap zone ranges for bar coloring
 }
 
 /// Trait for pots that can be rendered in the interactive demo.

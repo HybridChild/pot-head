@@ -3,6 +3,7 @@ use num_traits::AsPrimitive;
 use crate::hysteresis::HysteresisMode;
 use crate::curves::ResponseCurve;
 use crate::filters::NoiseFilter;
+use crate::snap_zones::SnapZone;
 
 #[derive(Debug, PartialEq)]
 pub enum ConfigError {
@@ -10,6 +11,7 @@ pub enum ConfigError {
     InvalidOutputRange,
     InvalidHysteresis,
     InvalidFilter,
+    OverlappingSnapZones,
 }
 
 impl core::fmt::Display for ConfigError {
@@ -19,6 +21,7 @@ impl core::fmt::Display for ConfigError {
             ConfigError::InvalidOutputRange => write!(f, "output_min must not equal output_max"),
             ConfigError::InvalidHysteresis => write!(f, "invalid hysteresis configuration"),
             ConfigError::InvalidFilter => write!(f, "invalid filter configuration"),
+            ConfigError::OverlappingSnapZones => write!(f, "snap zones must not overlap"),
         }
     }
 }
@@ -31,6 +34,7 @@ pub struct Config<TIn, TOut = TIn> {
     pub hysteresis: HysteresisMode<f32>,
     pub curve: ResponseCurve,
     pub filter: NoiseFilter,
+    pub snap_zones: &'static [SnapZone<f32>],
 }
 
 impl<TIn, TOut> Config<TIn, TOut>
@@ -59,6 +63,20 @@ where
             .validate()
             .map_err(|_| ConfigError::InvalidFilter)?;
 
+        Ok(())
+    }
+
+    /// Validate that no snap zones overlap.
+    /// This is an optional validation helper - overlaps are allowed by default.
+    /// Call this during development if you want to ensure clean, non-overlapping zones.
+    pub fn validate_snap_zones(&self) -> Result<(), ConfigError> {
+        for (i, zone1) in self.snap_zones.iter().enumerate() {
+            for zone2 in self.snap_zones.iter().skip(i + 1) {
+                if zone1.overlaps(zone2) {
+                    return Err(ConfigError::OverlappingSnapZones);
+                }
+            }
+        }
         Ok(())
     }
 }

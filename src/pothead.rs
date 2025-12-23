@@ -54,10 +54,16 @@ where
         let curved = self.config.curve.apply(filtered);
 
         // Apply hysteresis
-        let processed = self.config.hysteresis.apply(curved, &mut self.state.hysteresis);
+        let hysteresis_applied = self.config.hysteresis.apply(curved, &mut self.state.hysteresis);
+
+        // Apply snap zones
+        let snapped = self.apply_snap_zones(hysteresis_applied);
+
+        // Update last output for dead zones
+        self.state.last_output = snapped;
 
         // Denormalize to output range
-        self.denormalize_output(processed)
+        self.denormalize_output(snapped)
     }
 
     fn apply_filter(&mut self, value: f32) -> f32 {
@@ -82,6 +88,16 @@ where
                 }
             }
         }
+    }
+
+    fn apply_snap_zones(&self, value: f32) -> f32 {
+        // Process zones in order - first match wins
+        for zone in self.config.snap_zones {
+            if zone.contains(value) {
+                return zone.apply(value, self.state.last_output);
+            }
+        }
+        value // No zone matched
     }
 
     fn normalize_input(&self, input: TIn) -> f32 {

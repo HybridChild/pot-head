@@ -1,4 +1,6 @@
-use pot_head::{Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve};
+use pot_head::{Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+
+static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
 #[cfg(feature = "filter-ema")]
 #[test]
@@ -11,6 +13,7 @@ fn test_pothead_with_ema_filter() {
         hysteresis: HysteresisMode::none(),
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::ExponentialMovingAverage { alpha: 0.3 },
+        snap_zones: &EMPTY_SNAP_ZONES,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");
@@ -41,6 +44,7 @@ fn test_pothead_with_moving_average_filter() {
         hysteresis: HysteresisMode::none(),
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::MovingAverage { window_size: 3 },
+        snap_zones: &EMPTY_SNAP_ZONES,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");
@@ -66,6 +70,7 @@ fn test_filter_smooths_noisy_input() {
         hysteresis: HysteresisMode::none(),
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::ExponentialMovingAverage { alpha: 0.2 },
+        snap_zones: &EMPTY_SNAP_ZONES,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");
@@ -105,6 +110,7 @@ fn test_no_filter_passes_through() {
         hysteresis: HysteresisMode::none(),
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
+        snap_zones: &EMPTY_SNAP_ZONES,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");
@@ -126,6 +132,7 @@ fn test_filter_combined_with_hysteresis() {
         hysteresis: HysteresisMode::ChangeThreshold { threshold: 0.1 },
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::ExponentialMovingAverage { alpha: 0.5 },
+        snap_zones: &EMPTY_SNAP_ZONES,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");

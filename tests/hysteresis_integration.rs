@@ -1,4 +1,6 @@
-use pot_head::{Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve};
+use pot_head::{Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone};
+
+static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
 #[test]
 fn test_pothead_with_no_hysteresis() {
@@ -10,6 +12,7 @@ fn test_pothead_with_no_hysteresis() {
         hysteresis: HysteresisMode::none(),
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
+        snap_zones: &EMPTY_SNAP_ZONES,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");
@@ -38,6 +41,7 @@ fn test_pothead_with_change_threshold() {
         hysteresis: HysteresisMode::ChangeThreshold { threshold: 0.05 }, // 5% threshold in normalized space
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
+        snap_zones: &EMPTY_SNAP_ZONES,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");
@@ -77,6 +81,7 @@ fn test_pothead_with_schmitt_trigger() {
         output_max: 1.0_f32,
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
+        snap_zones: &EMPTY_SNAP_ZONES,
         hysteresis: HysteresisMode::SchmittTrigger {
             rising: 0.6,
             falling: 0.4,
@@ -118,6 +123,7 @@ fn test_hysteresis_with_different_types() {
         hysteresis: HysteresisMode::ChangeThreshold { threshold: 0.1 }, // 10% threshold
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
+        snap_zones: &EMPTY_SNAP_ZONES,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");
@@ -146,6 +152,7 @@ fn test_invalid_schmitt_config() {
         output_max: 1.0_f32,
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
+        snap_zones: &EMPTY_SNAP_ZONES,
         hysteresis: HysteresisMode::SchmittTrigger {
             rising: 0.4,  // Invalid: rising <= falling
             falling: 0.6,

@@ -6,6 +6,8 @@ pub struct ColorScheme {
     pub processed_indicator_color: Color,
     pub physical_indicator_color: Color,
     pub threshold_color: Color,
+    pub snap_zone_color: Color,
+    pub dead_zone_color: Color,
 }
 
 impl ColorScheme {
@@ -15,6 +17,8 @@ impl ColorScheme {
             processed_indicator_color: self.processed_indicator_color,
             physical_indicator_color: self.physical_indicator_color,
             threshold_color: dim_color(self.threshold_color),
+            snap_zone_color: dim_color(self.snap_zone_color),
+            dead_zone_color: dim_color(self.dead_zone_color),
         }
     }
 }
