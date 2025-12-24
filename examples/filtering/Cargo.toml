@@ -5,4 +5,4 @@ edition = "2024"
 publish = false
 
 [dependencies]
-pot-head = { path = "../..", features = ["filter-ema", "filter-moving-avg", "hysteresis-threshold"] }
+pot-head = { path = "../..", features = ["std-math", "moving-average", "grab-mode"] }

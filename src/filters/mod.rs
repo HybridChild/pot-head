@@ -1,7 +1,6 @@
 /// Noise filtering implementations
 ///
 /// Filters smooth noisy ADC readings. All filtering happens in normalized f32 space.
-
 mod ema;
 
 #[cfg(feature = "moving-average")]

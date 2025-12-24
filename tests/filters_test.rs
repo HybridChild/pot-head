@@ -1,6 +1,3 @@
-#![cfg(any(feature = "filter-ema", feature = "filter-moving-avg"))]
-
-#[cfg(feature = "filter-ema")]
 mod ema_tests {
     use pot_head::filters::EmaFilter;
 
@@ -76,7 +73,7 @@ mod ema_tests {
     }
 }
 
-#[cfg(feature = "filter-moving-avg")]
+#[cfg(feature = "moving-average")]
 mod moving_avg_tests {
     use pot_head::filters::MovingAvgFilter;
 
@@ -165,7 +162,7 @@ mod moving_avg_tests {
     }
 }
 
-#[cfg(all(feature = "filter-ema", feature = "filter-moving-avg"))]
+#[cfg(feature = "moving-average")]
 mod comparison_tests {
     use pot_head::filters::{EmaFilter, MovingAvgFilter};
 

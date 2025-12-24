@@ -1,8 +1,6 @@
-use pot_head::hysteresis::{HysteresisMode, HysteresisState};
+use pot_head::hysteresis::{HysteresisMode, HysteresisState, SchmittState};
 
 use core::marker::PhantomData;
-#[cfg(feature = "hysteresis-schmitt")]
-use pot_head::hysteresis::SchmittState;
 
 #[test]
 fn test_none_passes_through() {
@@ -14,13 +12,11 @@ fn test_none_passes_through() {
     assert_eq!(mode.apply(50, &mut state), 50);
 }
 
-#[cfg(feature = "hysteresis-threshold")]
 #[test]
 fn test_change_threshold_ignores_small_changes() {
     let mode = HysteresisMode::ChangeThreshold { threshold: 10 };
     let mut state = HysteresisState {
         last_output: 100,
-        #[cfg(feature = "hysteresis-schmitt")]
         schmitt_state: SchmittState::Low,
     };
 
@@ -42,13 +38,11 @@ fn test_change_threshold_ignores_small_changes() {
     assert_eq!(state.last_output, 100);
 }
 
-#[cfg(feature = "hysteresis-threshold")]
 #[test]
 fn test_change_threshold_exact_boundary() {
     let mode = HysteresisMode::ChangeThreshold { threshold: 10 };
     let mut state = HysteresisState {
         last_output: 100,
-        #[cfg(feature = "hysteresis-schmitt")]
         schmitt_state: SchmittState::Low,
     };
 
@@ -60,7 +54,6 @@ fn test_change_threshold_exact_boundary() {
     assert_eq!(mode.apply(111, &mut state), 111);
 }
 
-#[cfg(feature = "hysteresis-schmitt")]
 #[test]
 fn test_schmitt_trigger_basic() {
     let mode = HysteresisMode::SchmittTrigger {
@@ -89,7 +82,6 @@ fn test_schmitt_trigger_basic() {
     assert_eq!(state.schmitt_state, SchmittState::Low);
 }
 
-#[cfg(feature = "hysteresis-schmitt")]
 #[test]
 fn test_schmitt_trigger_prevents_oscillation() {
     let mode = HysteresisMode::SchmittTrigger {
@@ -124,7 +116,6 @@ fn test_schmitt_trigger_prevents_oscillation() {
     assert_eq!(state.schmitt_state, SchmittState::Low);
 }
 
-#[cfg(feature = "hysteresis-schmitt")]
 #[test]
 fn test_schmitt_validation() {
     let valid = HysteresisMode::SchmittTrigger {
@@ -152,7 +143,6 @@ fn test_none_validation() {
     assert!(mode.validate().is_ok());
 }
 
-#[cfg(feature = "hysteresis-threshold")]
 #[test]
 fn test_change_threshold_validation() {
     let mode = HysteresisMode::ChangeThreshold { threshold: 10 };

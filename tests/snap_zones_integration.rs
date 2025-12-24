@@ -1,4 +1,6 @@
-use pot_head::{Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone, SnapZoneType};
+use pot_head::{
+    Config, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone, SnapZoneType,
+};
 
 #[cfg(feature = "grab-mode")]
 use pot_head::GrabMode;
@@ -18,7 +20,7 @@ fn test_snap_zone_basic() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -57,7 +59,7 @@ fn test_multiple_snap_zones() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -92,7 +94,7 @@ fn test_dead_zone_basic() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -147,7 +149,7 @@ fn test_mixed_snap_and_dead_zones() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -190,7 +192,7 @@ fn test_overlapping_zones_first_match_wins() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -218,7 +220,7 @@ fn test_empty_snap_zones() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -246,7 +248,7 @@ fn test_snap_zone_validation_overlaps() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &OVERLAPPING_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -274,7 +276,7 @@ fn test_snap_zone_validation_no_overlaps() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &NON_OVERLAPPING_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 

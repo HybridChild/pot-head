@@ -16,7 +16,7 @@ fn test_pothead_with_no_hysteresis() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -41,7 +41,6 @@ fn test_pothead_with_no_hysteresis() {
     );
 }
 
-#[cfg(feature = "hysteresis-threshold")]
 #[test]
 fn test_pothead_with_change_threshold() {
     let config = Config {
@@ -53,7 +52,7 @@ fn test_pothead_with_change_threshold() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -84,7 +83,6 @@ fn test_pothead_with_change_threshold() {
     assert!((output - 0.684).abs() < 0.001);
 }
 
-#[cfg(feature = "hysteresis-schmitt")]
 #[test]
 fn test_pothead_with_schmitt_trigger() {
     let config = Config {
@@ -99,6 +97,8 @@ fn test_pothead_with_schmitt_trigger() {
             rising: 0.6,
             falling: 0.4,
         },
+        #[cfg(feature = "grab-mode")]
+        grab_mode: GrabMode::None,
     };
 
     let mut pot = PotHead::new(config).expect("Valid config");
@@ -124,7 +124,6 @@ fn test_pothead_with_schmitt_trigger() {
     assert_eq!(output, 0.4);
 }
 
-#[cfg(feature = "hysteresis-threshold")]
 #[test]
 fn test_hysteresis_with_different_types() {
     // Test u8 -> i16
@@ -137,7 +136,7 @@ fn test_hysteresis_with_different_types() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -157,7 +156,6 @@ fn test_hysteresis_with_different_types() {
     assert!((output - 40).abs() < 2); // ~40
 }
 
-#[cfg(feature = "hysteresis-schmitt")]
 #[test]
 fn test_invalid_schmitt_config() {
     let config = Config {
@@ -172,6 +170,8 @@ fn test_invalid_schmitt_config() {
             rising: 0.4, // Invalid: rising <= falling
             falling: 0.6,
         },
+        #[cfg(feature = "grab-mode")]
+        grab_mode: GrabMode::None,
     };
 
     // Should fail validation

@@ -16,7 +16,7 @@ fn test_u16_to_u16_normalization() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -52,7 +52,7 @@ fn test_u16_to_f32_normalization() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -88,7 +88,7 @@ fn test_input_clamping() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -115,7 +115,7 @@ fn test_inverted_output_range() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -143,7 +143,7 @@ fn test_same_type_conversion() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 

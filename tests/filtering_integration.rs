@@ -5,7 +5,6 @@ use pot_head::GrabMode;
 
 static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
-#[cfg(feature = "filter-ema")]
 #[test]
 fn test_pothead_with_ema_filter() {
     let config = Config {
@@ -17,7 +16,7 @@ fn test_pothead_with_ema_filter() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::ExponentialMovingAverage { alpha: 0.3 },
         snap_zones: &EMPTY_SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -38,7 +37,7 @@ fn test_pothead_with_ema_filter() {
     assert!((out3 - 0.51).abs() < 0.01, "Expected ~0.51, got {}", out3);
 }
 
-#[cfg(feature = "filter-moving-avg")]
+#[cfg(feature = "moving-average")]
 #[test]
 fn test_pothead_with_moving_average_filter() {
     let config = Config {
@@ -50,7 +49,7 @@ fn test_pothead_with_moving_average_filter() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::MovingAverage { window_size: 3 },
         snap_zones: &EMPTY_SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -66,7 +65,6 @@ fn test_pothead_with_moving_average_filter() {
     assert!((out - 0.6).abs() < 0.001, "Expected 0.6, got {}", out);
 }
 
-#[cfg(feature = "filter-ema")]
 #[test]
 fn test_filter_smooths_noisy_input() {
     let config = Config {
@@ -78,7 +76,7 @@ fn test_filter_smooths_noisy_input() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::ExponentialMovingAverage { alpha: 0.2 },
         snap_zones: &EMPTY_SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -124,7 +122,7 @@ fn test_no_filter_passes_through() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::None,
         snap_zones: &EMPTY_SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
@@ -136,7 +134,6 @@ fn test_no_filter_passes_through() {
     assert_eq!(pot.update(100), 1.0);
 }
 
-#[cfg(all(feature = "filter-ema", feature = "hysteresis-threshold"))]
 #[test]
 fn test_filter_combined_with_hysteresis() {
     let config = Config {
@@ -148,7 +145,7 @@ fn test_filter_combined_with_hysteresis() {
         curve: ResponseCurve::Linear,
         filter: NoiseFilter::ExponentialMovingAverage { alpha: 0.5 },
         snap_zones: &EMPTY_SNAP_ZONES,
-#[cfg(feature = "grab-mode")]
+        #[cfg(feature = "grab-mode")]
         grab_mode: GrabMode::None,
     };
 
