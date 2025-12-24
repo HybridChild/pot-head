@@ -6,7 +6,7 @@ Embedded developers working with physical controls (potentiometers, faders, slid
 - **Lack of professional polish** (no snap zones, no smooth response curves)
 - **Boilerplate code** reimplemented in every project
 
-This crate provides a reusable, zero-allocation, `no_std` solution for processing potentiometer inputs with professional-grade features.
+This crate provides a `no_std` library for processing potentiometer inputs in embedded systems. It transforms raw ADC values into clean, processed output values through configurable filters, curves, and response modes.
 
 ## Core Principle
 

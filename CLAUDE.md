@@ -2,9 +2,9 @@
 
 ## Project Status
 
-**Current Phase:** Design → Implementation
+**Current Phase:** v0.1 Implementation Complete
 
-This is a Rust `no_std` embedded library for processing potentiometer inputs. The design is complete and documented in `docs/design-spec.md`. We're now ready to implement the core functionality.
+This is a Rust `no_std` embedded library for processing potentiometer inputs. All v0.1 features are implemented and tested.
 
 ## What pot-head Does
 
@@ -35,9 +35,9 @@ pot-head/
 │   ├── snap_zones/         # Snap zone implementations
 │   └── grab_mode/          # Grab mode implementations
 ├── docs/
-│   └── design-spec.md      # Complete design specification
-├── examples/               # Usage examples (to be created)
-└── tests/                  # Integration tests (to be created)
+│   └── FEATURES.md         # User-facing feature documentation
+├── examples/               # Usage examples and demonstrations
+└── tests/                  # Integration tests
 ```
 
 ## Key Design Principles
@@ -61,7 +61,7 @@ v0.1 uses static ROM configuration exclusively:
 ### 4. Feature-Gated Compilation
 Three meaningful features control dependencies and optional functionality:
 ```toml
-default = ["std-math"]
+default = ["std-math", "grab-mode"]
 std-math = ["libm"]           # Logarithmic curves
 moving-average = ["heapless"] # Moving average filter
 grab-mode = []                # Pickup/PassThrough modes (~24-40 bytes)
@@ -154,36 +154,37 @@ heapless = { version = "0.9", optional = true }    # For moving average filter (
 
 ## Reference Documentation
 
-**Full Design Specification:** `docs/design-spec.md`
-- Complete rationale for all design decisions
-- Alternative approaches considered
-- Detailed API examples
-- Deferred features and roadmap
+**Feature Documentation:** `docs/FEATURES.md`
+- Complete feature reference for users
+- Usage examples for all features
+- Configuration patterns
+- Future roadmap
 
-**Key Sections:**
-- Numeric type design (separate TIn/TOut)
-- Error handling strategy (const validation + runtime clamping)
-- Feature gating details
-- Grab mode implementations
-- Overlapping snap zones behavior
-- Builder API (deferred to v0.2+)
+**Key Design Decisions:**
+- Numeric type design (separate TIn/TOut) - eliminates wasteful conversions
+- Error handling strategy (const validation + runtime clamping) - zero overhead in release
+- Feature gating details - compile-time optimization
+- Grab mode implementations - Pickup and PassThrough for parameter automation
+- Overlapping snap zones behavior - first match wins (priority by order)
+- Static ROM configuration (v0.1) - builder API deferred to v0.2+
 
 ## Development Workflow
 
-1. **Read the design spec** - Understand the complete picture before implementing
-2. **Start with core types** - `Config`, `State`, `PotHead` skeleton
-3. **Implement features incrementally** - One feature module at a time
-4. **Test as you go** - Unit tests for each module
-5. **Examples validate API** - Use interactive example to demonstrate features
-6. **Lean and clean Document** - Brief API docs. No verbose doc comments
+1. **Understand the architecture** - Review `FEATURES.md` and existing implementation
+2. **Implement features incrementally** - One feature module at a time
+3. **Test as you go** - Unit tests for each module
+4. **Update examples** - Demonstrate new features in interactive example
+5. **Lean and clean documentation** - Brief API docs. No verbose doc comments
+6. **Update FEATURES.md** - Document user-facing changes
 
-## Questions During Implementation
+## Adding New Features
 
-If design decisions need clarification or revision:
-1. Check `docs/design-spec.md` for rationale
-2. Consider if the change affects other design decisions
-3. Update both implementation and design docs together
-4. Note any deviations from the spec and why
+When adding new features:
+1. Consider if the change affects existing design decisions
+2. Update both implementation and documentation together
+3. Add feature flag if it introduces new dependencies
+4. Update `FEATURES.md` with usage examples
+5. Add tests demonstrating the feature
 
 ---
 
