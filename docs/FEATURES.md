@@ -6,45 +6,29 @@
 
 ```rust
 // ADC → normalized float (common pattern)
-let config: Config<u16, f32> = Config {
+let gain_config: Config<u16, f32> = Config {
     input_min: 0,
     input_max: 4095,
     output_min: 0.0,
     output_max: 1.0,
     // ...
 };
-let mut pot = PotHead::new(config)?;
-let volume: f32 = pot.update(adc_value);
+let mut gain_pot = PotHead::new(gain_config)?;
+let gain: f32 = gain_pot.update(adc_value);
 
 // Same type (default)
-let config: Config<u16> = Config {
+let pwm_config: Config<u16> = Config {
     input_min: 0,
     input_max: 4095,
     output_min: 0,
     output_max: 1000,
     // ...
 };
-let mut pot = PotHead::new(config)?;
-let pwm: u16 = pot.update(adc_value);
+let mut pwm_pot = PotHead::new(pwm_config)?;
+let pwm: u16 = pwm_pot.update(adc_value);
 ```
 
 *Default `TOut = TIn` allows concise type annotations for same-type cases.*
-
-## Processing Pipeline
-
-Input processing follows a fixed order:
-
-```
-Input (TIn)
-  → Normalize to f32 (0.0-1.0)
-  → Noise Filter
-  → Response Curve
-  → Hysteresis
-  → Snap Zones
-  → Grab Mode
-  → Denormalize to TOut
-  → Output (TOut)
-```
 
 ## Response Curves
 
@@ -263,7 +247,7 @@ if pot.is_waiting_for_grab() {
 
 ## Static ROM Configuration
 
-v0.1 uses static configuration stored in flash memory (ROM), minimizing RAM usage:
+**pot-head** uses static configuration stored in flash memory (ROM), minimizing RAM usage:
 
 ```rust
 static VOLUME_CONFIG: Config<u16, f32> = Config {
@@ -366,60 +350,6 @@ pot-head = { version = "0.1", default-features = false }
 ```
 
 Provides: Linear curves, EMA filter, change threshold hysteresis, snap zones.
-
-## Complete Example
-
-```rust
-use pot_head::{
-    Config, GrabMode, HysteresisMode, NoiseFilter, PotHead,
-    ResponseCurve, SnapZone, SnapZoneType,
-};
-
-// Static configuration in ROM
-static VOLUME_CONFIG: Config<u16, f32> = Config {
-    input_min: 0,
-    input_max: 4095,
-    output_min: 0.0,
-    output_max: 1.0,
-    curve: ResponseCurve::Logarithmic,
-    filter: NoiseFilter::ExponentialMovingAverage { alpha: 0.3 },
-    hysteresis: HysteresisMode::ChangeThreshold { threshold: 0.05 },
-    snap_zones: &[SnapZone::new(0.0, 0.02, SnapZoneType::Snap)],
-    grab_mode: GrabMode::Pickup,
-};
-
-// Compile-time validation
-const _: () = {
-    match VOLUME_CONFIG.validate() {
-        Ok(()) => {},
-        Err(e) => panic!("{}", e),
-    }
-};
-
-fn main() {
-    // Create pot (only state in RAM)
-    let mut volume_pot = PotHead::new(VOLUME_CONFIG).unwrap();
-
-    loop {
-        // Read hardware
-        let raw_adc = read_adc_channel(0);
-
-        // Process through pot-head
-        let volume: f32 = volume_pot.update(raw_adc);
-
-        // Apply to your application
-        audio_driver.set_volume(volume);
-
-        // Optional: UI display for grab mode
-        if volume_pot.is_waiting_for_grab() {
-            display_dual_state(
-                volume_pot.current_output(),
-                volume_pot.physical_position(),
-            );
-        }
-    }
-}
-```
 
 ## Performance Characteristics
 
