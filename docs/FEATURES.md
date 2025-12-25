@@ -1,5 +1,9 @@
 # Features
 
+Complete feature reference for **pot-head**. For a working demonstration of all features, see the [interactive example](../examples/interactive/README.md).
+
+---
+
 ## Dual Type Parameters
 
 `PotHead<TIn, TOut = TIn>` supports separate input and output types:

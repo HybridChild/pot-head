@@ -112,7 +112,7 @@ loop {
 ## Documentation
 
 - **[FEATURES.md](docs/FEATURES.md)** - Complete feature reference with usage examples
-- **[Interactive Example](examples/interactive/)** - Full working demonstration (terminal-based)
+- **[Interactive Example](examples/interactive/README.md)** - Full working demonstration (terminal-based)
 - **`cargo doc --open`** - API documentation
 
 ---
