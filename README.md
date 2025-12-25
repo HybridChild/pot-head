@@ -130,18 +130,20 @@ loop {
 ## Memory Footprint
 
 **Static ROM Configuration:**
-- Config stored in flash: TBD (depends on snap zones)
-- Runtime state in RAM: TBD per instance
+- Config stored in flash: 40-44 bytes (depends on type parameters + snap zones)
+- Runtime state in RAM: 184 bytes per instance
 
 **Typical costs:**
-- Base instance (no grab-mode): TBD bytes RAM
-- With grab-mode: TBD bytes RAM
+- `PotHead<u16, u16>` (integer scaling): 224 bytes RAM
+- `PotHead<u16, f32>` (typical audio/control): 228 bytes RAM
 - Filter state: Included in base cost
-- Moving average buffer: `WINDOW_SIZE × sizeof(TIn)` bytes (if enabled)
+- Moving average buffer: `WINDOW_SIZE × sizeof(TIn)` bytes additional (if enabled)
 
 **Example:** A mixer with 8 faders using `PotHead<u16, f32>` with EMA filter and grab-mode:
-- **Flash:** TBD (configs + code)
-- **RAM:** TBD
+- **Flash:** ~352 bytes (configs) + code
+- **RAM:** 1,824 bytes (8 × 228 bytes)
+
+*Measured on ARM Cortex-M4F/M7 (`thumbv7em-none-eabihf`). Run `tools/sizeof-calculator/generate-report.sh` to regenerate for different targets.*
 
 ---
 

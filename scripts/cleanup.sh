@@ -17,9 +17,9 @@ echo "  [2/5] examples/filtering"
 echo "  [3/5] examples/interactive"
 (cd examples/interactive && cargo clean)
 
-# Tools
-# echo "  [4/5] tools/sizeof-calculator"
-# (cd tools/sizeof-calculator && cargo clean)
+Tools
+echo "  [4/5] tools/sizeof-calculator"
+(cd tools/sizeof-calculator && cargo clean)
 
 # Remove tmp directory if it exists
 if [ -d "tmp" ]; then

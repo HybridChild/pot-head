@@ -8,7 +8,7 @@ description = ""
 repository = "https://github.com/HybridChild/pot-head"
 keywords = ["embedded", "potmeter", "pot", "no-std"]
 categories = ["embedded", "no-std"]
-exclude = ["examples/"]
+exclude = ["examples/", "tools"]
 
 [dependencies]
 num-traits = { version = "0.2", default-features = false }
