@@ -7,7 +7,7 @@ static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
 #[test]
 fn test_pothead_with_no_hysteresis() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 4095_u16,
         output_min: 0.0_f32,
@@ -20,7 +20,7 @@ fn test_pothead_with_no_hysteresis() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).expect("Valid config");
+    let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // Start at midpoint
     let output1 = pot.update(2048);
@@ -43,7 +43,7 @@ fn test_pothead_with_no_hysteresis() {
 
 #[test]
 fn test_pothead_with_change_threshold() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 4095_u16,
         output_min: 0.0_f32,
@@ -56,7 +56,7 @@ fn test_pothead_with_change_threshold() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).expect("Valid config");
+    let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // Initial value
     let initial = pot.update(2048); // ~50%
@@ -85,7 +85,7 @@ fn test_pothead_with_change_threshold() {
 
 #[test]
 fn test_pothead_with_schmitt_trigger() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 4095_u16,
         output_min: 0.0_f32,
@@ -101,7 +101,7 @@ fn test_pothead_with_schmitt_trigger() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).expect("Valid config");
+    let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // Start below falling threshold - should output falling value
     let output = pot.update(1000); // ~24%
@@ -127,7 +127,7 @@ fn test_pothead_with_schmitt_trigger() {
 #[test]
 fn test_hysteresis_with_different_types() {
     // Test u8 -> i16
-    let config = Config {
+    static CONFIG: Config<u8, i16> = Config {
         input_min: 0_u8,
         input_max: 255_u8,
         output_min: -100_i16,
@@ -140,7 +140,7 @@ fn test_hysteresis_with_different_types() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).expect("Valid config");
+    let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // Initial value at center
     let output = pot.update(127); // ~50%
@@ -158,7 +158,7 @@ fn test_hysteresis_with_different_types() {
 
 #[test]
 fn test_invalid_schmitt_config() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 4095_u16,
         output_min: 0.0_f32,
@@ -175,6 +175,6 @@ fn test_invalid_schmitt_config() {
     };
 
     // Should fail validation
-    let result = PotHead::new(config);
+    let result = PotHead::new(&CONFIG);
     assert!(result.is_err());
 }

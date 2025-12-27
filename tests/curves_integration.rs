@@ -7,7 +7,7 @@ static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
 #[test]
 fn test_linear_curve_integration() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 100_u16,
         output_min: 0.0_f32,
@@ -20,7 +20,7 @@ fn test_linear_curve_integration() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Linear curve should map directly
     assert_eq!(pot.update(0), 0.0);
@@ -31,7 +31,7 @@ fn test_linear_curve_integration() {
 #[cfg(feature = "std-math")]
 #[test]
 fn test_logarithmic_curve_integration() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 100_u16,
         output_min: 0.0_f32,
@@ -44,7 +44,7 @@ fn test_logarithmic_curve_integration() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Logarithmic curve boundaries
     let min_output = pot.update(0);

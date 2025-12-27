@@ -9,7 +9,7 @@ static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
 #[test]
 fn test_invalid_input_range() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 100_u16,
         input_max: 100_u16, // Same as min - invalid
         output_min: 0.0_f32,
@@ -22,13 +22,13 @@ fn test_invalid_input_range() {
         grab_mode: GrabMode::None,
     };
 
-    let result = PotHead::new(config);
+    let result = PotHead::new(&CONFIG);
     assert!(matches!(result, Err(ConfigError::InvalidInputRange)));
 }
 
 #[test]
 fn test_inverted_input_range() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 200_u16,
         input_max: 100_u16, // Less than min - invalid
         output_min: 0.0_f32,
@@ -41,13 +41,13 @@ fn test_inverted_input_range() {
         grab_mode: GrabMode::None,
     };
 
-    let result = PotHead::new(config);
+    let result = PotHead::new(&CONFIG);
     assert!(matches!(result, Err(ConfigError::InvalidInputRange)));
 }
 
 #[test]
 fn test_invalid_output_range() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 100_u16,
         output_min: 1.0_f32,
@@ -60,6 +60,6 @@ fn test_invalid_output_range() {
         grab_mode: GrabMode::None,
     };
 
-    let result = PotHead::new(config);
+    let result = PotHead::new(&CONFIG);
     assert!(matches!(result, Err(ConfigError::InvalidOutputRange)));
 }

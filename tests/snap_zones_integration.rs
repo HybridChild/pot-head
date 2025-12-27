@@ -11,7 +11,7 @@ fn test_snap_zone_basic() {
         SnapZone::new(0.0, 0.05, SnapZoneType::Snap), // Snap to 0% within ±5%
     ];
 
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 100_u16,
         output_min: 0.0_f32,
@@ -24,7 +24,7 @@ fn test_snap_zone_basic() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Within snap zone - should snap to 0.0
     let result = pot.update(2); // 2% of range
@@ -50,7 +50,7 @@ fn test_multiple_snap_zones() {
         SnapZone::new(1.0, 0.02, SnapZoneType::Snap), // 100% ±2%
     ];
 
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 100_u16,
         output_min: 0.0_f32,
@@ -63,7 +63,7 @@ fn test_multiple_snap_zones() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Test each snap zone
     assert_eq!(pot.update(1), 0.0); // Snap to 0%
@@ -85,7 +85,7 @@ fn test_dead_zone_basic() {
         SnapZone::new(0.5, 0.05, SnapZoneType::Dead), // Dead zone at 50% ±5%
     ];
 
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 100_u16,
         output_min: 0.0_f32,
@@ -98,7 +98,7 @@ fn test_dead_zone_basic() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Move to 25% (outside dead zone)
     let result = pot.update(25);
@@ -140,7 +140,7 @@ fn test_mixed_snap_and_dead_zones() {
         SnapZone::new(0.5, 0.05, SnapZoneType::Dead), // Dead zone at 50%
     ];
 
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 100_u16,
         output_min: 0.0_f32,
@@ -153,7 +153,7 @@ fn test_mixed_snap_and_dead_zones() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Snap zone behavior
     assert_eq!(pot.update(3), 0.0, "Should snap to 0.0");
@@ -183,7 +183,7 @@ fn test_overlapping_zones_first_match_wins() {
         SnapZone::new(0.05, 0.03, SnapZoneType::Snap), // 5% ±3% (range: 0.02 to 0.08, overlaps!)
     ];
 
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 100_u16,
         output_min: 0.0_f32,
@@ -196,7 +196,7 @@ fn test_overlapping_zones_first_match_wins() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Input at 5% - matches both zones, but first one wins
     let result = pot.update(5);
@@ -211,7 +211,7 @@ fn test_overlapping_zones_first_match_wins() {
 fn test_empty_snap_zones() {
     static SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 100_u16,
         output_min: 0.0_f32,
@@ -224,7 +224,7 @@ fn test_empty_snap_zones() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Should pass through unchanged
     assert_eq!(pot.update(0), 0.0);
@@ -239,7 +239,7 @@ fn test_snap_zone_validation_overlaps() {
         SnapZone::new(0.05, 0.1, SnapZoneType::Snap), // Overlaps with first
     ];
 
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 100_u16,
         output_min: 0.0_f32,
@@ -253,10 +253,10 @@ fn test_snap_zone_validation_overlaps() {
     };
 
     // Config is valid - overlaps are allowed by default
-    assert!(config.validate().is_ok());
+    assert!(CONFIG.validate().is_ok());
 
     // But optional validation should catch overlap
-    assert!(config.validate_snap_zones().is_err());
+    assert!(CONFIG.validate_snap_zones().is_err());
 }
 
 #[test]
@@ -267,7 +267,7 @@ fn test_snap_zone_validation_no_overlaps() {
         SnapZone::new(1.0, 0.02, SnapZoneType::Snap),
     ];
 
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 100_u16,
         output_min: 0.0_f32,
@@ -281,6 +281,6 @@ fn test_snap_zone_validation_no_overlaps() {
     };
 
     // Should pass both validations
-    assert!(config.validate().is_ok());
-    assert!(config.validate_snap_zones().is_ok());
+    assert!(CONFIG.validate().is_ok());
+    assert!(CONFIG.validate_snap_zones().is_ok());
 }

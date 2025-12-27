@@ -2,24 +2,54 @@
 
 use pot_head::{Config, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve};
 
-fn create_test_config(grab_mode: GrabMode) -> Config<u16, f32> {
-    Config {
-        input_min: 0,
-        input_max: 1000,
-        output_min: 0.0,
-        output_max: 1.0,
-        hysteresis: HysteresisMode::None(core::marker::PhantomData),
-        curve: ResponseCurve::Linear,
-        filter: NoiseFilter::None,
-        snap_zones: &[],
-        grab_mode,
+static CONFIG_NONE: Config<u16, f32> = Config {
+    input_min: 0,
+    input_max: 1000,
+    output_min: 0.0,
+    output_max: 1.0,
+    hysteresis: HysteresisMode::None(core::marker::PhantomData),
+    curve: ResponseCurve::Linear,
+    filter: NoiseFilter::None,
+    snap_zones: &[],
+    grab_mode: GrabMode::None,
+};
+
+static CONFIG_PICKUP: Config<u16, f32> = Config {
+    input_min: 0,
+    input_max: 1000,
+    output_min: 0.0,
+    output_max: 1.0,
+    hysteresis: HysteresisMode::None(core::marker::PhantomData),
+    curve: ResponseCurve::Linear,
+    filter: NoiseFilter::None,
+    snap_zones: &[],
+    grab_mode: GrabMode::Pickup,
+};
+
+static CONFIG_PASSTHROUGH: Config<u16, f32> = Config {
+    input_min: 0,
+    input_max: 1000,
+    output_min: 0.0,
+    output_max: 1.0,
+    hysteresis: HysteresisMode::None(core::marker::PhantomData),
+    curve: ResponseCurve::Linear,
+    filter: NoiseFilter::None,
+    snap_zones: &[],
+    grab_mode: GrabMode::PassThrough,
+};
+
+fn create_test_config(grab_mode: GrabMode) -> &'static Config<u16, f32> {
+    match grab_mode {
+        GrabMode::None => &CONFIG_NONE,
+        GrabMode::Pickup => &CONFIG_PICKUP,
+        GrabMode::PassThrough => &CONFIG_PASSTHROUGH,
     }
 }
 
 #[test]
 fn test_grab_mode_none() {
     let config = create_test_config(GrabMode::None);
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&config).unwrap();
 
     // No grab mode - output follows input immediately
     assert_eq!(pot.update(500), 0.5);
@@ -33,7 +63,7 @@ fn test_grab_mode_none() {
 #[test]
 fn test_pickup_mode_basic() {
     let config = create_test_config(GrabMode::Pickup);
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&config).unwrap();
 
     // Set virtual value to 70%
     pot.set_virtual_value(0.7);
@@ -58,7 +88,7 @@ fn test_pickup_mode_basic() {
 #[test]
 fn test_pickup_mode_already_above() {
     let config = create_test_config(GrabMode::Pickup);
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&config).unwrap();
 
     // Set virtual value to 30%
     pot.set_virtual_value(0.3);
@@ -74,7 +104,7 @@ fn test_pickup_mode_already_above() {
 #[test]
 fn test_passthrough_mode_from_below() {
     let config = create_test_config(GrabMode::PassThrough);
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&config).unwrap();
 
     // Set virtual value to 70%
     pot.set_virtual_value(0.7);
@@ -97,7 +127,7 @@ fn test_passthrough_mode_from_below() {
 #[test]
 fn test_passthrough_mode_from_above() {
     let config = create_test_config(GrabMode::PassThrough);
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&config).unwrap();
 
     // Set virtual value to 30%
     pot.set_virtual_value(0.3);
@@ -120,7 +150,7 @@ fn test_passthrough_mode_from_above() {
 #[test]
 fn test_passthrough_mode_bidirectional() {
     let config = create_test_config(GrabMode::PassThrough);
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&config).unwrap();
 
     // Set virtual value to 50%
     pot.set_virtual_value(0.5);
@@ -143,7 +173,7 @@ fn test_passthrough_mode_bidirectional() {
 #[test]
 fn test_physical_position_tracking() {
     let config = create_test_config(GrabMode::Pickup);
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&config).unwrap();
 
     // Set virtual value to 70%
     pot.set_virtual_value(0.7);
@@ -167,7 +197,7 @@ fn test_physical_position_tracking() {
 #[test]
 fn test_set_virtual_value_resets_grab() {
     let config = create_test_config(GrabMode::Pickup);
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&config).unwrap();
 
     // Grab pot at 50%
     pot.update(500);
@@ -187,7 +217,7 @@ fn test_set_virtual_value_resets_grab() {
 #[test]
 fn test_pickup_mode_no_overshoot_required() {
     let config = create_test_config(GrabMode::Pickup);
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&config).unwrap();
 
     pot.set_virtual_value(0.7);
 
@@ -199,7 +229,7 @@ fn test_pickup_mode_no_overshoot_required() {
 #[test]
 fn test_passthrough_exact_crossing() {
     let config = create_test_config(GrabMode::PassThrough);
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&config).unwrap();
 
     pot.set_virtual_value(0.5);
 
@@ -212,7 +242,7 @@ fn test_passthrough_exact_crossing() {
 #[test]
 fn test_grab_mode_helpers() {
     let config = create_test_config(GrabMode::Pickup);
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&config).unwrap();
 
     pot.set_virtual_value(0.7);
     pot.update(300);
@@ -232,7 +262,7 @@ fn test_grab_mode_helpers() {
 #[test]
 fn test_release_method() {
     let config = create_test_config(GrabMode::Pickup);
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&config).unwrap();
 
     // Grab pot at 60%
     pot.update(600);
@@ -263,8 +293,8 @@ fn test_release_for_mode_switching() {
     let volume_config = create_test_config(GrabMode::Pickup);
     let backlight_config = create_test_config(GrabMode::Pickup);
 
-    let mut volume_pot = PotHead::new(volume_config).unwrap();
-    let mut backlight_pot = PotHead::new(backlight_config).unwrap();
+    let mut volume_pot = PotHead::new(&volume_config).unwrap();
+    let mut backlight_pot = PotHead::new(&backlight_config).unwrap();
 
     // Volume mode: pot grabbed at 50%
     volume_pot.update(500);

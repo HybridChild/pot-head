@@ -7,7 +7,7 @@ static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
 #[test]
 fn test_pothead_with_ema_filter() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 4095_u16,
         output_min: 0.0_f32,
@@ -20,7 +20,7 @@ fn test_pothead_with_ema_filter() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).expect("Valid config");
+    let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // First value initializes filter
     let out1 = pot.update(0);
@@ -40,7 +40,7 @@ fn test_pothead_with_ema_filter() {
 #[cfg(feature = "moving-average")]
 #[test]
 fn test_pothead_with_moving_average_filter() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 100_u16,
         output_min: 0.0_f32,
@@ -53,7 +53,7 @@ fn test_pothead_with_moving_average_filter() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).expect("Valid config");
+    let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // Build up moving average
     assert_eq!(pot.update(0), 0.0); // [0.0] avg = 0.0
@@ -67,7 +67,7 @@ fn test_pothead_with_moving_average_filter() {
 
 #[test]
 fn test_filter_smooths_noisy_input() {
-    let config = Config {
+    static CONFIG: Config<u16, u16> = Config {
         input_min: 0_u16,
         input_max: 1000_u16,
         output_min: 0_u16,
@@ -80,7 +80,7 @@ fn test_filter_smooths_noisy_input() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).expect("Valid config");
+    let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // Noisy readings around 500
     let noisy_samples = [500, 510, 490, 505, 495, 500, 498, 502];
@@ -113,7 +113,7 @@ fn test_filter_smooths_noisy_input() {
 
 #[test]
 fn test_no_filter_passes_through() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 100_u16,
         output_min: 0.0_f32,
@@ -126,7 +126,7 @@ fn test_no_filter_passes_through() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).expect("Valid config");
+    let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // No filtering - direct mapping
     assert_eq!(pot.update(0), 0.0);
@@ -136,7 +136,7 @@ fn test_no_filter_passes_through() {
 
 #[test]
 fn test_filter_combined_with_hysteresis() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 1000_u16,
         output_min: 0.0_f32,
@@ -149,7 +149,7 @@ fn test_filter_combined_with_hysteresis() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).expect("Valid config");
+    let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // Initialize at midpoint
     let initial = pot.update(500);

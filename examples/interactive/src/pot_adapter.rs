@@ -5,7 +5,7 @@ use pot_head::{HysteresisMode, PotHead, SnapZoneType};
 use std::fmt::Display;
 
 /// Adapts a PotHead<TIn, TOut> to the RenderablePot trait
-pub struct PotAdapter<TIn, TOut> {
+pub struct PotAdapter<TIn: 'static, TOut: 'static> {
     pot: PotHead<TIn, TOut>,
     label: &'static str,
     color_scheme: ColorScheme,

@@ -12,18 +12,18 @@ use crate::filters::EmaFilter;
 #[cfg(feature = "moving-average")]
 use crate::filters::MovingAvgFilter;
 
-pub struct PotHead<TIn, TOut = TIn> {
-    config: Config<TIn, TOut>,
+pub struct PotHead<TIn: 'static, TOut: 'static = TIn> {
+    config: &'static Config<TIn, TOut>,
     state: State<f32>,
 }
 
 impl<TIn, TOut> PotHead<TIn, TOut>
 where
-    TIn: Copy + PartialOrd + AsPrimitive<f32>,
-    TOut: Copy + PartialOrd + AsPrimitive<f32>,
+    TIn: 'static + Copy + PartialOrd + AsPrimitive<f32>,
+    TOut: 'static + Copy + PartialOrd + AsPrimitive<f32>,
     f32: AsPrimitive<TOut>,
 {
-    pub fn new(config: Config<TIn, TOut>) -> Result<Self, ConfigError> {
+    pub fn new(config: &'static Config<TIn, TOut>) -> Result<Self, ConfigError> {
         config.validate()?;
 
         let mut state = State::default();

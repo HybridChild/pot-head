@@ -40,17 +40,9 @@ const DEFAULT_COLOR_SCHEME: ColorScheme = ColorScheme {
 };
 
 /// Specification for creating a pot with all its display properties
-pub struct PotSpec<TIn, TOut> {
+pub struct PotSpec<TIn: 'static, TOut: 'static> {
     pub label: &'static str,
-    pub input_min: TIn,
-    pub input_max: TIn,
-    pub output_min: TOut,
-    pub output_max: TOut,
-    pub hysteresis: HysteresisMode<f32>,
-    pub curve: ResponseCurve,
-    pub filter: NoiseFilter,
-    pub snap_zones: &'static [SnapZone<f32>],
-    pub grab_mode: GrabMode,
+    pub config: &'static Config<TIn, TOut>,
     pub color_scheme: ColorScheme,
     pub precision: usize,
 }
@@ -62,19 +54,7 @@ where
     f32: AsPrimitive<TIn> + AsPrimitive<TOut>,
 {
     pub fn build(&self) -> Result<Box<dyn RenderablePot>> {
-        let config = Config {
-            input_min: self.input_min,
-            input_max: self.input_max,
-            output_min: self.output_min,
-            output_max: self.output_max,
-            hysteresis: self.hysteresis,
-            curve: self.curve,
-            filter: self.filter,
-            snap_zones: self.snap_zones,
-            grab_mode: self.grab_mode,
-        };
-
-        let pot = PotHead::new(config).map_err(|e| {
+        let pot = PotHead::new(self.config).map_err(|e| {
             std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
                 format!("{} config error: {:?}", self.label, e),
@@ -86,8 +66,8 @@ where
             self.label,
             self.color_scheme,
             self.precision,
-            self.input_min,
-            self.input_max,
+            self.config.input_min,
+            self.config.input_max,
         )))
     }
 }
@@ -95,9 +75,8 @@ where
 // Empty snap zones for pots that don't use them
 static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
-// Pre-defined pot specifications
-pub const RAW_POT: PotSpec<u16, f32> = PotSpec {
-    label: "Raw Pot",
+// Static configurations
+static RAW_POT_CONFIG: Config<u16, f32> = Config {
     input_min: 0,
     input_max: 4095,
     output_min: 0.0,
@@ -107,12 +86,9 @@ pub const RAW_POT: PotSpec<u16, f32> = PotSpec {
     filter: NoiseFilter::None,
     snap_zones: &EMPTY_SNAP_ZONES,
     grab_mode: GrabMode::None,
-    color_scheme: DEFAULT_COLOR_SCHEME,
-    precision: 3,
 };
 
-pub const REVERSED_POT: PotSpec<u16, f32> = PotSpec {
-    label: "Reversed Pot",
+static REVERSED_POT_CONFIG: Config<u16, f32> = Config {
     input_min: 0,
     input_max: 4095,
     output_min: 100.0,
@@ -122,12 +98,9 @@ pub const REVERSED_POT: PotSpec<u16, f32> = PotSpec {
     filter: NoiseFilter::None,
     snap_zones: &EMPTY_SNAP_ZONES,
     grab_mode: GrabMode::None,
-    color_scheme: DEFAULT_COLOR_SCHEME,
-    precision: 2,
 };
 
-pub const SCHMITT_POT: PotSpec<u16, i32> = PotSpec {
-    label: "Schmitt Pot",
+static SCHMITT_POT_CONFIG: Config<u16, i32> = Config {
     input_min: 0,
     input_max: 4095,
     output_min: 0,
@@ -140,12 +113,9 @@ pub const SCHMITT_POT: PotSpec<u16, i32> = PotSpec {
     filter: NoiseFilter::None,
     snap_zones: &EMPTY_SNAP_ZONES,
     grab_mode: GrabMode::None,
-    color_scheme: DEFAULT_COLOR_SCHEME,
-    precision: 0,
 };
 
-pub const LOG_POT: PotSpec<u16, f32> = PotSpec {
-    label: "Log Pot (Audio Taper)",
+static LOG_POT_CONFIG: Config<u16, f32> = Config {
     input_min: 0,
     input_max: 4095,
     output_min: -60.0,
@@ -155,12 +125,9 @@ pub const LOG_POT: PotSpec<u16, f32> = PotSpec {
     filter: NoiseFilter::None,
     snap_zones: &EMPTY_SNAP_ZONES,
     grab_mode: GrabMode::None,
-    color_scheme: DEFAULT_COLOR_SCHEME,
-    precision: 3,
 };
 
-pub const FILTERED_POT: PotSpec<u16, f32> = PotSpec {
-    label: "Filtered Pot (EMA)",
+static FILTERED_POT_CONFIG: Config<u16, f32> = Config {
     input_min: 0,
     input_max: 4095,
     output_min: 0.0,
@@ -170,8 +137,6 @@ pub const FILTERED_POT: PotSpec<u16, f32> = PotSpec {
     filter: NoiseFilter::ExponentialMovingAverage { alpha: 0.3 },
     snap_zones: &EMPTY_SNAP_ZONES,
     grab_mode: GrabMode::None,
-    color_scheme: DEFAULT_COLOR_SCHEME,
-    precision: 3,
 };
 
 // Snap zones configuration for SNAP_POT
@@ -181,8 +146,7 @@ static SNAP_POT_ZONES: [SnapZone<f32>; 3] = [
     SnapZone::new(1.0, 0.1, SnapZoneType::Snap), // Snap to 100% (±10%)
 ];
 
-pub const SNAP_POT: PotSpec<u16, f32> = PotSpec {
-    label: "Snap Zones Pot",
+static SNAP_POT_CONFIG: Config<u16, f32> = Config {
     input_min: 0,
     input_max: 4095,
     output_min: 0.0,
@@ -192,12 +156,9 @@ pub const SNAP_POT: PotSpec<u16, f32> = PotSpec {
     filter: NoiseFilter::None,
     snap_zones: &SNAP_POT_ZONES,
     grab_mode: GrabMode::None,
-    color_scheme: DEFAULT_COLOR_SCHEME,
-    precision: 3,
 };
 
-pub const _PICKUP_POT: PotSpec<u16, f32> = PotSpec {
-    label: "Pickup Mode Pot",
+static _PICKUP_POT_CONFIG: Config<u16, f32> = Config {
     input_min: 0,
     input_max: 4095,
     output_min: 0.0,
@@ -207,12 +168,9 @@ pub const _PICKUP_POT: PotSpec<u16, f32> = PotSpec {
     filter: NoiseFilter::None,
     snap_zones: &EMPTY_SNAP_ZONES,
     grab_mode: GrabMode::Pickup,
-    color_scheme: DEFAULT_COLOR_SCHEME,
-    precision: 3,
 };
 
-pub const PASSTHROUGH_POT: PotSpec<u16, f32> = PotSpec {
-    label: "PassThrough Mode Pot",
+static PASSTHROUGH_POT_CONFIG: Config<u16, f32> = Config {
     input_min: 0,
     input_max: 4095,
     output_min: 0.0,
@@ -222,6 +180,61 @@ pub const PASSTHROUGH_POT: PotSpec<u16, f32> = PotSpec {
     filter: NoiseFilter::None,
     snap_zones: &EMPTY_SNAP_ZONES,
     grab_mode: GrabMode::PassThrough,
+};
+
+// Pre-defined pot specifications
+pub const RAW_POT: PotSpec<u16, f32> = PotSpec {
+    label: "Raw Pot",
+    config: &RAW_POT_CONFIG,
+    color_scheme: DEFAULT_COLOR_SCHEME,
+    precision: 3,
+};
+
+pub const REVERSED_POT: PotSpec<u16, f32> = PotSpec {
+    label: "Reversed Pot",
+    config: &REVERSED_POT_CONFIG,
+    color_scheme: DEFAULT_COLOR_SCHEME,
+    precision: 2,
+};
+
+pub const SCHMITT_POT: PotSpec<u16, i32> = PotSpec {
+    label: "Schmitt Pot",
+    config: &SCHMITT_POT_CONFIG,
+    color_scheme: DEFAULT_COLOR_SCHEME,
+    precision: 0,
+};
+
+pub const LOG_POT: PotSpec<u16, f32> = PotSpec {
+    label: "Log Pot (Audio Taper)",
+    config: &LOG_POT_CONFIG,
+    color_scheme: DEFAULT_COLOR_SCHEME,
+    precision: 3,
+};
+
+pub const FILTERED_POT: PotSpec<u16, f32> = PotSpec {
+    label: "Filtered Pot (EMA)",
+    config: &FILTERED_POT_CONFIG,
+    color_scheme: DEFAULT_COLOR_SCHEME,
+    precision: 3,
+};
+
+pub const SNAP_POT: PotSpec<u16, f32> = PotSpec {
+    label: "Snap Zones Pot",
+    config: &SNAP_POT_CONFIG,
+    color_scheme: DEFAULT_COLOR_SCHEME,
+    precision: 3,
+};
+
+pub const _PICKUP_POT: PotSpec<u16, f32> = PotSpec {
+    label: "Pickup Mode Pot",
+    config: &_PICKUP_POT_CONFIG,
+    color_scheme: DEFAULT_COLOR_SCHEME,
+    precision: 3,
+};
+
+pub const PASSTHROUGH_POT: PotSpec<u16, f32> = PotSpec {
+    label: "PassThrough Mode Pot",
+    config: &PASSTHROUGH_POT_CONFIG,
     color_scheme: DEFAULT_COLOR_SCHEME,
     precision: 3,
 };

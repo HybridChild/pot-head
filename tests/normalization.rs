@@ -7,7 +7,7 @@ static EMPTY_SNAP_ZONES: [SnapZone<f32>; 0] = [];
 
 #[test]
 fn test_u16_to_u16_normalization() {
-    let config = Config {
+    static CONFIG: Config<u16, u16> = Config {
         input_min: 0_u16,
         input_max: 4095_u16,
         output_min: 0_u16,
@@ -20,7 +20,7 @@ fn test_u16_to_u16_normalization() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Test minimum
     assert_eq!(pot.update(0), 0);
@@ -43,7 +43,7 @@ fn test_u16_to_u16_normalization() {
 
 #[test]
 fn test_u16_to_f32_normalization() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 4095_u16,
         output_min: 0.0_f32,
@@ -56,7 +56,7 @@ fn test_u16_to_f32_normalization() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Test minimum
     assert_eq!(pot.update(0), 0.0);
@@ -79,7 +79,7 @@ fn test_u16_to_f32_normalization() {
 
 #[test]
 fn test_input_clamping() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 100_u16,
         input_max: 200_u16,
         output_min: 0.0_f32,
@@ -92,7 +92,7 @@ fn test_input_clamping() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Test below minimum gets clamped
     assert_eq!(pot.update(50), 0.0);
@@ -106,7 +106,7 @@ fn test_input_clamping() {
 
 #[test]
 fn test_inverted_output_range() {
-    let config = Config {
+    static CONFIG: Config<u16, f32> = Config {
         input_min: 0_u16,
         input_max: 100_u16,
         output_min: 1.0_f32,
@@ -119,7 +119,7 @@ fn test_inverted_output_range() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // When input is minimum, output should be maximum (inverted)
     assert_eq!(pot.update(0), 1.0);
@@ -134,7 +134,7 @@ fn test_inverted_output_range() {
 
 #[test]
 fn test_same_type_conversion() {
-    let config = Config {
+    static CONFIG: Config<f32, f32> = Config {
         input_min: 0_f32,
         input_max: 1.0_f32,
         output_min: 0.0_f32,
@@ -147,7 +147,7 @@ fn test_same_type_conversion() {
         grab_mode: GrabMode::None,
     };
 
-    let mut pot = PotHead::new(config).unwrap();
+    let mut pot = PotHead::new(&CONFIG).unwrap();
 
     assert_eq!(pot.update(0.0), 0.0);
     assert_eq!(pot.update(1.0), 100.0);
