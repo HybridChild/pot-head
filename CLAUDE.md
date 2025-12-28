@@ -1,11 +1,5 @@
 # pot-head Development Guide
 
-## Project Status
-
-**Current Phase:** v0.1 Implementation Complete
-
-This is a Rust `no_std` embedded library for processing potentiometer inputs. All v0.1 features are implemented and tested.
-
 ## What pot-head Does
 
 Transforms raw ADC values into clean, processed output values:
@@ -142,15 +136,6 @@ let volume: f32 = pot.update(adc_value);
 - Demonstrate common use cases in interactive example
 - Safety notes for `unsafe` code (if any)
 - Performance characteristics (especially for filters)
-
-## Dependencies
-
-```toml
-[dependencies]
-num-traits = { version = "0.2", default-features = false }
-libm = { version = "0.2", optional = true }        # For logarithmic curves (std-math feature)
-heapless = { version = "0.9", optional = true }    # For moving average filter (moving-average feature)
-```
 
 ## Reference Documentation
 
