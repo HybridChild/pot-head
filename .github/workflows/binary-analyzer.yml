@@ -1,0 +1,121 @@
+name: Binary Analyzer
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'tools/binary-analyzer/**'
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  binary-analyzer:
+    name: Memory Footprint Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: thumbv6m-none-eabi,thumbv7em-none-eabihf
+          components: llvm-tools
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin-bloat-binutils-v1
+
+      - name: Install cargo-bloat
+        run: |
+          if ! command -v cargo-bloat &> /dev/null; then
+            cargo install cargo-bloat
+          fi
+
+      - name: Install cargo-binutils
+        run: |
+          if ! command -v cargo-size &> /dev/null; then
+            cargo install cargo-binutils
+          fi
+
+      - name: Run binary analyzer
+        run: cd tools/binary-analyzer && ./analyze.sh
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-analyzer-report
+          path: tools/binary-analyzer/report.md
+          retention-days: 90
+
+      - name: Post PR comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'tools/binary-analyzer/report.md';
+            const report = fs.readFileSync(reportPath, 'utf8');
+
+            // Extract the summary (header + Target Comparison table, before individual target sections)
+            const summaryMatch = report.match(/# pot-head Memory Footprint Analysis[\s\S]*?(?=\n---\n)/);
+            const summary = summaryMatch ? summaryMatch[0] : report;
+
+            const body = `## Memory Footprint Analysis\n\n${summary}\n\n<details>\n<summary>View full report</summary>\n\n${report}\n\n</details>`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Memory Footprint Analysis')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
