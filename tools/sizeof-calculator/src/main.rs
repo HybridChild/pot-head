@@ -1,10 +1,17 @@
-use std::mem::size_of;
 use pot_head::*;
+use std::mem::size_of;
 
 fn main() {
     println!("# pot-head sizeof Report\n");
-    println!("**Generated:** {}\n", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC"));
-    println!("**Platform:** {} ({})\n", std::env::consts::OS, std::env::consts::ARCH);
+    println!(
+        "**Generated:** {}\n",
+        chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
+    );
+    println!(
+        "**Platform:** {} ({})\n",
+        std::env::consts::OS,
+        std::env::consts::ARCH
+    );
 
     component_sizes();
     filter_comparison();
@@ -53,14 +60,18 @@ fn filter_comparison() {
         println!("| MovingAverage(32) | {} bytes | ~144 bytes* |", base_size);
         println!();
         println!("*Note: Moving average overhead scales with window size (4 bytes per sample).");
-        println!("The actual State struct size is constant but includes space for the largest buffer.\n");
+        println!(
+            "The actual State struct size is constant but includes space for the largest buffer.\n"
+        );
     }
 
     #[cfg(not(feature = "moving-average"))]
     {
         println!();
         println!("*Note: EMA filter adds ~8 bytes of initialized state (f32 + bool).");
-        println!("Moving average feature is not enabled - add `--features moving-average` to see MovingAverage sizes.\n");
+        println!(
+            "Moving average feature is not enabled - add `--features moving-average` to see MovingAverage sizes.\n"
+        );
     }
 }
 
@@ -76,14 +87,35 @@ fn feature_comparison() {
     let state_size = size_of::<State<f32>>();
     let pothead_size = size_of::<PotHead<u16, f32>>();
 
-    #[cfg(all(feature = "std-math", feature = "grab-mode", feature = "moving-average"))]
-    println!("| full (current build) | {} | {} | {} |", config_size, state_size, pothead_size);
+    #[cfg(all(
+        feature = "std-math",
+        feature = "grab-mode",
+        feature = "moving-average"
+    ))]
+    println!(
+        "| full (current build) | {} | {} | {} |",
+        config_size, state_size, pothead_size
+    );
 
-    #[cfg(all(feature = "std-math", feature = "grab-mode", not(feature = "moving-average")))]
-    println!("| default (current build) | {} | {} | {} |", config_size, state_size, pothead_size);
+    #[cfg(all(
+        feature = "std-math",
+        feature = "grab-mode",
+        not(feature = "moving-average")
+    ))]
+    println!(
+        "| default (current build) | {} | {} | {} |",
+        config_size, state_size, pothead_size
+    );
 
-    #[cfg(all(not(feature = "std-math"), not(feature = "grab-mode"), not(feature = "moving-average")))]
-    println!("| minimal (current build) | {} | {} | {} |", config_size, state_size, pothead_size);
+    #[cfg(all(
+        not(feature = "std-math"),
+        not(feature = "grab-mode"),
+        not(feature = "moving-average")
+    ))]
+    println!(
+        "| minimal (current build) | {} | {} | {} |",
+        config_size, state_size, pothead_size
+    );
 
     println!();
     println!("**Feature breakdown:**");
@@ -103,18 +135,33 @@ fn common_configs() {
 
     let base_pothead = size_of::<PotHead<u16, f32>>();
 
-    println!("| Simple volume knob | u16→f32 | EMA | minimal | ~{} bytes |", base_pothead);
-    println!("| Audio taper control | u16→f32 | EMA | std-math | ~{} bytes |", base_pothead);
-    println!("| Integer scaler | u16→u16 | None | minimal | ~{} bytes |", size_of::<PotHead<u16, u16>>());
+    println!(
+        "| Simple volume knob | u16→f32 | EMA | minimal | ~{} bytes |",
+        base_pothead
+    );
+    println!(
+        "| Audio taper control | u16→f32 | EMA | std-math | ~{} bytes |",
+        base_pothead
+    );
+    println!(
+        "| Integer scaler | u16→u16 | None | minimal | ~{} bytes |",
+        size_of::<PotHead<u16, u16>>()
+    );
 
     #[cfg(feature = "grab-mode")]
     {
-        println!("| Synth parameter (w/ pickup) | u16→f32 | EMA | default | ~{} bytes |", base_pothead);
+        println!(
+            "| Synth parameter (w/ pickup) | u16→f32 | EMA | default | ~{} bytes |",
+            base_pothead
+        );
     }
 
     #[cfg(feature = "moving-average")]
     {
-        println!("| High-precision w/ MA(16) | u16→f32 | MA(16) | full | ~{} bytes |", base_pothead);
+        println!(
+            "| High-precision w/ MA(16) | u16→f32 | MA(16) | full | ~{} bytes |",
+            base_pothead
+        );
     }
 
     println!();
@@ -123,7 +170,16 @@ fn common_configs() {
     let min_config = size_of::<PotHead<u16, u16>>();
     let typical_config = size_of::<PotHead<u16, f32>>();
 
-    println!("- **Minimal config**: ~{} bytes (u16→u16, no filter, no features)", min_config);
-    println!("- **Typical config**: ~{} bytes (u16→f32, EMA filter)", typical_config);
-    println!("- **Maximum config**: ~{} bytes (all features, largest filter)", typical_config);
+    println!(
+        "- **Minimal config**: ~{} bytes (u16→u16, no filter, no features)",
+        min_config
+    );
+    println!(
+        "- **Typical config**: ~{} bytes (u16→f32, EMA filter)",
+        typical_config
+    );
+    println!(
+        "- **Maximum config**: ~{} bytes (all features, largest filter)",
+        typical_config
+    );
 }

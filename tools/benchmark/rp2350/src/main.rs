@@ -1,14 +1,14 @@
 #![no_std]
 #![no_main]
 
-use rp235x_hal::entry;
 use panic_halt as _;
+use rp235x_hal::entry;
 use rtt_target::{rprintln, rtt_init_print};
 
 mod bench;
 mod scenarios;
 
-use bench::{validate_fpu, Measurement, Timer};
+use bench::{Measurement, Timer, validate_fpu};
 use pot_head::*;
 use scenarios::*;
 

@@ -6,7 +6,7 @@ mod scenarios;
 
 use panic_halt as _;
 use rp_pico::entry;
-use rp_pico::hal::{self, pac, Clock};
+use rp_pico::hal::{self, Clock, pac};
 use rtt_target::{rprintln, rtt_init_print};
 
 use bench::{Measurement, Timer};
@@ -41,7 +41,10 @@ fn main() -> ! {
     rprintln!("===========================");
     rprintln!("");
     rprintln!("Platform: RP2040 (Cortex-M0+)");
-    rprintln!("CPU: {} MHz, FPU: None (soft-float)", cpu_freq_hz / 1_000_000);
+    rprintln!(
+        "CPU: {} MHz, FPU: None (soft-float)",
+        cpu_freq_hz / 1_000_000
+    );
     rprintln!("Target: thumbv6m-none-eabi");
     rprintln!("");
     rprintln!("PotHead::update() Performance");
