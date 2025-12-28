@@ -3,8 +3,8 @@
 
 use panic_rtt_target as _;
 use rp235x_hal::entry;
-use rp235x_hal::{pac, watchdog::Watchdog, clocks::init_clocks_and_plls, Clock};
-use rtt_target::{rprintln, ChannelMode};
+use rp235x_hal::{Clock, clocks::init_clocks_and_plls, pac, watchdog::Watchdog};
+use rtt_target::{ChannelMode, rprintln};
 
 mod bench;
 mod scenarios;

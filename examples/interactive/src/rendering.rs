@@ -322,7 +322,7 @@ pub fn render(state: &mut AppState) -> Result<()> {
         }),
         Print("-"),
         SetForegroundColor(Color::Blue),
-        Print(" Dead   ║"),
+        Print(" Dead            ║"),
     )?;
     line += 1;
 

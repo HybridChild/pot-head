@@ -4,9 +4,10 @@
 //! (e.g., after automation or preset change), grab modes prevent jarring jumps.
 
 /// Grab mode determines how pot position synchronizes with virtual parameter value.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum GrabMode {
     /// Disabled - pot position immediately controls output (may cause jumps).
+    #[default]
     None,
 
     /// Pickup mode - catches when pot crosses virtual value from below.
@@ -16,12 +17,6 @@ pub enum GrabMode {
     /// PassThrough mode - catches when pot crosses virtual value from either direction.
     /// More intuitive UX - catches from whichever direction you approach.
     PassThrough,
-}
-
-impl Default for GrabMode {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 #[cfg(test)]

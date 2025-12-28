@@ -42,7 +42,7 @@ where
     }
 
     pub fn config(&self) -> &Config<TIn, TOut> {
-        &self.config
+        self.config
     }
 
     pub fn update(&mut self, input: TIn) -> TOut {
