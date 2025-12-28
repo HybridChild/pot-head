@@ -26,11 +26,23 @@ if ! command -v cargo &> /dev/null; then
     exit 1
 fi
 
-if ! command -v arm-none-eabi-size &> /dev/null; then
-    echo -e "${YELLOW}Warning: arm-none-eabi-size not found${NC}"
-    echo "Install ARM embedded toolchain:"
-    echo "  macOS: brew install --cask gcc-arm-embedded"
-    echo "  Linux: sudo apt-get install gcc-arm-none-eabi"
+# Detect size tool (prefer Rust native tools, fall back to ARM GNU)
+SIZE_TOOL=""
+if command -v rust-size &> /dev/null; then
+    SIZE_TOOL="rust-size"
+    echo "Using rust-size (from cargo-binutils)"
+elif command -v llvm-size &> /dev/null; then
+    SIZE_TOOL="llvm-size"
+    echo "Using llvm-size (from llvm-tools)"
+elif command -v arm-none-eabi-size &> /dev/null; then
+    SIZE_TOOL="arm-none-eabi-size"
+    echo "Using arm-none-eabi-size (from ARM GNU toolchain)"
+else
+    echo -e "${YELLOW}Error: No size tool found${NC}"
+    echo "Install one of:"
+    echo "  Rust native: cargo install cargo-binutils"
+    echo "  ARM GNU toolchain (macOS): brew install --cask gcc-arm-embedded"
+    echo "  ARM GNU toolchain (Linux): sudo apt-get install gcc-arm-none-eabi"
     exit 1
 fi
 
@@ -142,8 +154,8 @@ for target_spec in "${TARGETS[@]}"; do
             continue
         fi
 
-        # Extract section sizes using arm-none-eabi-size
-        SIZE_OUTPUT=$(arm-none-eabi-size "$BINARY" | tail -n 1)
+        # Extract section sizes using detected size tool
+        SIZE_OUTPUT=$($SIZE_TOOL "$BINARY" | tail -n 1)
         TEXT=$(echo "$SIZE_OUTPUT" | awk '{print $1}')
         DATA=$(echo "$SIZE_OUTPUT" | awk '{print $2}')
         BSS=$(echo "$SIZE_OUTPUT" | awk '{print $3}')
