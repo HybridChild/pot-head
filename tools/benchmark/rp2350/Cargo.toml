@@ -1,0 +1,25 @@
+[package]
+name = "pot-head-bench-rp2350"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+pot-head = { path = "../../..", default-features = false, features = ["std-math", "grab-mode", "moving-average"] }
+cortex-m = "0.7"
+cortex-m-rt = "0.7"
+rp235x-hal = { version = "0.3", features = ["critical-section-impl", "rt", "rom-func-cache"] }
+rtt-target = "0.6.2"
+panic-halt = "1.0.0"
+
+[features]
+default = ["std-math", "grab-mode", "moving-average"]
+std-math = []
+grab-mode = []
+moving-average = []
+
+[profile.release]
+opt-level = 3          # Maximum optimization
+lto = true
+codegen-units = 1
+debug = true           # Keep symbols for probe-rs

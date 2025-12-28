@@ -1,0 +1,26 @@
+[package]
+name = "pot-head-bench-rp2040"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+pot-head = { path = "../../..", default-features = false, features = ["std-math", "grab-mode", "moving-average"] }
+cortex-m = "0.7"
+cortex-m-rt = "0.7"
+rp-pico = "0.9"
+rp2040-boot2 = "0.3"
+rtt-target = "0.6.2"
+panic-halt = "1.0.0"
+
+[features]
+default = ["std-math", "grab-mode", "moving-average"]
+std-math = []
+grab-mode = []
+moving-average = []
+
+[profile.release]
+opt-level = 3          # Maximum optimization
+lto = true
+codegen-units = 1
+debug = true           # Keep symbols for probe-rs
