@@ -1,6 +1,6 @@
 # sizeof-calculator
 
-Measures RAM usage for different pot-head configurations.
+Measures RAM usage for different **pot-head** configurations.
 
 ## Usage
 

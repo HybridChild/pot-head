@@ -1,6 +1,6 @@
 # binary-analyzer
 
-Flash footprint analysis tool for pot-head across ARM Cortex-M targets.
+Flash footprint analysis tool for **pot-head** across ARM Cortex-M targets.
 
 ## What It Does
 
@@ -63,7 +63,7 @@ Generates `reports/binary_report.md` with:
 
 ## Test Binary
 
-The `test-binary/` directory contains a minimal no_std application that:
+The `test-binary/` directory contains a minimal `no_std` application that:
 - Uses realistic static ROM configuration (pot-head v0.1 pattern)
 - Exercises all code paths to prevent dead code elimination
 - Compiles with aggressive size optimization (`opt-level = "z"`, LTO)

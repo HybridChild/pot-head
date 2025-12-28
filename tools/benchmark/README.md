@@ -103,7 +103,7 @@ Memory barriers (`asm::dmb()`) prevent instruction reordering that would skew re
 
 ### FPU Validation (RP2350)
 
-The RP2350 benchmark verifies FPU is enabled by reading the CPACR register:
+The RP2350 benchmark verifies FPU is enabled by reading the `CPACR` register:
 
 ```
 FPU Enabled: true
@@ -118,17 +118,3 @@ This confirms hardware floating-point is active.
 - Lower is better
 - Includes full `update()` pipeline overhead
 - Measured on real hardware, not simulation
-
-### FPU Impact
-
-Compare logarithmic curve performance between platforms to see the FPU benefit:
-
-- **RP2040 (soft-float):** ~8420 cycles
-- **RP2350 (FPU):** Significantly faster due to hardware acceleration
-
-### Frequency Limits
-
-Maximum ADC polling rates based on update time:
-
-- **1ms budget:** `1000 / µs` Hz (for audio applications)
-- **10ms budget:** `10000 / µs` Hz (for general UI controls)

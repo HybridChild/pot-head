@@ -1,6 +1,6 @@
 # Filtering Example
 
-Demonstrates noise filtering with pot-head.
+Demonstrates noise filtering with **pot-head**.
 
 ## Features
 
@@ -14,7 +14,8 @@ This example shows how to use both filter types:
 ## Running
 
 ```bash
-cargo run
+cd examples/filtering
+cargo run --release
 ```
 
 ## What You'll Learn

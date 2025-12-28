@@ -71,7 +71,7 @@ pot-head = { version = "0.1", features = ["std-math", "moving-average", "grab-mo
 ```rust
 use pot_head::{PotHead, Config, ResponseCurve, NoiseFilter, HysteresisMode, SnapZone, SnapZoneType};
 
-// Define static configuration (stored in flash, not RAM)
+// Define static configuration (stored in flash)
 static VOLUME_CONFIG: Config<u16, f32> = Config {
     input_min: 0,
     input_max: 4095,        // 12-bit ADC
@@ -79,10 +79,10 @@ static VOLUME_CONFIG: Config<u16, f32> = Config {
     output_max: 0.0,
     curve: ResponseCurve::Logarithmic,  // Requires 'std-math' feature
     filter: NoiseFilter::ExponentialMovingAverage { alpha: 0.3 },
-    hysteresis: HysteresisMode::ChangeThreshold(8),
+    hysteresis: HysteresisMode::ChangeThreshold { threshold: 0.01 },  // 1% threshold
     snap_zones: &[
-        SnapZone::new(-60.0, 0.02, SnapZoneType::Snap),  // Snap to min (silence)
-        SnapZone::new(0.0, 0.02, SnapZoneType::Snap),    // Snap to max (unity gain)
+        SnapZone::new(-60.0, 0.02, SnapZoneType::Snap),  // Snap to min below 2%
+        SnapZone::new(0.0, 0.02, SnapZoneType::Snap),    // Snap to max above 98%
     ],
     grab_mode: GrabMode::PassThrough,
 };
@@ -95,7 +95,7 @@ const _: () = {
     }
 };
 
-// Create potentiometer instance (minimal RAM usage)
+// Create potentiometer instance from static config
 let mut volume_pot = PotHead::new(&VOLUME_CONFIG);
 
 // In your main loop:
@@ -139,11 +139,7 @@ loop {
 - Filter state: Included in base cost
 - Moving average buffer: `WINDOW_SIZE × 4` bytes additional (if enabled)
 
-**Example:** A mixer with 8 faders using `PotHead<u16, f32>` with EMA filter and grab-mode:
-- **Flash:** ~352 bytes (configs) + code
-- **RAM:** 1,504 bytes (8 × 188 bytes)
-
-**Binary sizes:**
+**Binary sizes (library logic):**
 - **Cortex-M0+ (no FPU):** 1.7KB (minimal) to 2.9KB (default with std-math)
 - **Cortex-M4F (with FPU):** 198B (minimal) to 624B (full features)
 
@@ -155,17 +151,16 @@ loop {
 
 **Update cycle** (`update()` call):
 
-**RP2040 (Cortex-M0+, 125 MHz, no FPU):**
-- Baseline (linear, no filter): 8.99µs (1,123 cycles)
-- With EMA filter: 12.72µs (1,590 cycles)
-- With logarithmic curve: 32.52µs (4,065 cycles)
-- Full featured: 47.02µs (5,877 cycles)
-
-**RP2350 (Cortex-M33F, 150 MHz, with FPU):**
-- Baseline (linear, no filter): 0.86µs (128 cycles)
-- With EMA filter: 1.00µs (150 cycles)
-- With logarithmic curve: 1.76µs (264 cycles)
-- Full featured: 2.28µs (341 cycles)
+| Platform | Configuration | Time | Cycles |
+|----------|--------------|------|--------|
+| **RP2040** (Cortex-M0+, 125 MHz, no FPU) | Baseline (linear, no filter) | 8.99µs | 1,123 |
+| | With EMA filter | 12.72µs | 1,590 |
+| | With logarithmic curve | 32.52µs | 4,065 |
+| | Full featured | 47.02µs | 5,877 |
+| **RP2350** (Cortex-M33F, 150 MHz, with FPU) | Baseline (linear, no filter) | 0.86µs | 128 |
+| | With EMA filter | 1.00µs | 150 |
+| | With logarithmic curve | 1.76µs | 264 |
+| | Full featured | 2.28µs | 341 |
 
 *See [`reports/rp2040_benchmarks.md`](reports/rp2040_benchmarks.md) and [`reports/rp2350_benchmarks.md`](reports/rp2350_benchmarks.md) for complete benchmark data.*
 

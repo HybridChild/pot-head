@@ -1,6 +1,6 @@
 # Features
 
-Complete feature reference for **pot-head**. For a working demonstration of all features, see the [interactive example](../examples/interactive/README.md).
+Complete feature reference for **pot-head**. For a complete, interactive demo application, see the [interactive example](../examples/interactive/README.md).
 
 ---
 
@@ -10,25 +10,25 @@ Complete feature reference for **pot-head**. For a working demonstration of all 
 
 ```rust
 // ADC → normalized float (common pattern)
-let gain_config: Config<u16, f32> = Config {
+static GAIN_CONFIG: Config<u16, f32> = Config {
     input_min: 0,
     input_max: 4095,
     output_min: 0.0,
     output_max: 1.0,
     // ...
 };
-let mut gain_pot = PotHead::new(gain_config)?;
+let mut gain_pot = PotHead::new(&GAIN_CONFIG)?;
 let gain: f32 = gain_pot.update(adc_value);
 
 // Same type (default)
-let pwm_config: Config<u16> = Config {
+static PWM_CONFIG: Config<u16> = Config {
     input_min: 0,
     input_max: 4095,
     output_min: 0,
     output_max: 1000,
     // ...
 };
-let mut pwm_pot = PotHead::new(pwm_config)?;
+let mut pwm_pot = PotHead::new(&PWM_CONFIG)?;
 let pwm: u16 = pwm_pot.update(adc_value);
 ```
 
@@ -259,9 +259,9 @@ static VOLUME_CONFIG: Config<u16, f32> = Config {
     input_max: 4095,
     output_min: 0.0,
     output_max: 1.0,
+    hysteresis: HysteresisMode::ChangeThreshold { threshold: 0.05 },
     curve: ResponseCurve::Logarithmic,
     filter: NoiseFilter::ExponentialMovingAverage { alpha: 0.3 },
-    hysteresis: HysteresisMode::ChangeThreshold { threshold: 0.05 },
     snap_zones: &[SnapZone::new(0.0, 0.02, SnapZoneType::Snap)],
     grab_mode: GrabMode::Pickup,
 };
@@ -275,7 +275,7 @@ const _: () = {
 };
 
 // Create instance (only state in RAM)
-let mut pot = PotHead::new(VOLUME_CONFIG)?;
+let mut pot = PotHead::new(&VOLUME_CONFIG)?;
 ```
 
 Multiple `PotHead` instances can share the same configuration, storing only runtime state in RAM.
