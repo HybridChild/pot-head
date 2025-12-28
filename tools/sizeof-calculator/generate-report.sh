@@ -67,6 +67,10 @@ esac
 cat > "$REPORT_FILE" << EOF
 # pot-head sizeof Report
 
+> **Note:** These are reference results for a specific target architecture. Struct sizes
+> are deterministic and depend only on the target architecture and compiler version,
+> not on hardware. Results should be identical across machines with the same toolchain.
+
 **Generated:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
 
 **Target:** $TARGET_DESC (\`$TARGET\`)

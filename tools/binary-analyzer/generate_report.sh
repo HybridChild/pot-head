@@ -57,6 +57,10 @@ TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
 cat > "$REPORT_FILE" << EOF
 # pot-head Binary Analysis Report
 
+> **Note:** These are reference results from a specific toolchain version. Binary sizes
+> are deterministic and depend only on the compiler version and optimization settings,
+> not on hardware. Results should be identical across machines with the same toolchain.
+
 **Generated:** $TIMESTAMP
 
 **Targets:**

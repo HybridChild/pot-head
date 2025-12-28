@@ -1,9 +1,10 @@
 #![no_std]
 #![no_main]
 
-use panic_halt as _;
+use panic_rtt_target as _;
 use rp235x_hal::entry;
-use rtt_target::{rprintln, rtt_init_print};
+use rp235x_hal::{pac, watchdog::Watchdog, clocks::init_clocks_and_plls, Clock};
+use rtt_target::{rprintln, ChannelMode};
 
 mod bench;
 mod scenarios;
@@ -17,10 +18,31 @@ use scenarios::*;
 #[used]
 pub static IMAGE_DEF: rp235x_hal::block::ImageDef = rp235x_hal::block::ImageDef::secure_exe();
 
+// Crystal frequency for RP2350 (12 MHz)
+const XOSC_CRYSTAL_FREQ: u32 = 12_000_000;
+
 #[entry]
 fn main() -> ! {
     // Initialize RTT for debug output
-    rtt_init_print!();
+    rtt_target::rtt_init_print!(ChannelMode::NoBlockSkip);
+
+    // Initialize hardware
+    let mut pac = pac::Peripherals::take().unwrap();
+
+    let mut watchdog = Watchdog::new(pac.WATCHDOG);
+    let clocks = init_clocks_and_plls(
+        XOSC_CRYSTAL_FREQ,
+        pac.XOSC,
+        pac.CLOCKS,
+        pac.PLL_SYS,
+        pac.PLL_USB,
+        &mut pac.RESETS,
+        &mut watchdog,
+    )
+    .ok()
+    .unwrap();
+
+    let cpu_freq_hz = clocks.system_clock.freq().to_Hz();
 
     rprintln!("");
     rprintln!("pot-head Hardware Benchmark");
@@ -29,7 +51,7 @@ fn main() -> ! {
     rprintln!("Platform: RP2350 (Cortex-M33F)");
     rprintln!(
         "CPU: {} MHz, FPU: Single-precision (hard-float)",
-        Timer::cpu_freq_mhz()
+        cpu_freq_hz / 1_000_000
     );
     rprintln!("Target: thumbv8m.main-none-eabihf");
     rprintln!("FPU Enabled: {}", validate_fpu());

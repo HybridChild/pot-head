@@ -11,6 +11,7 @@ cortex-m-rt = "0.7"
 rp235x-hal = { version = "0.3", features = ["critical-section-impl", "rt", "rom-func-cache"] }
 rtt-target = "0.6.2"
 panic-halt = "1.0.0"
+panic-rtt-target = "0.2"
 
 [features]
 default = ["std-math", "grab-mode", "moving-average"]

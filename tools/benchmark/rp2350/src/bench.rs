@@ -44,6 +44,7 @@ impl Timer {
     }
 
     /// Get CPU frequency in MHz
+    #[allow(dead_code)]
     pub const fn cpu_freq_mhz() -> u32 {
         150
     }

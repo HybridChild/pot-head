@@ -1,5 +1,5 @@
 [target.'cfg(all(target_arch = "arm", target_os = "none"))']
-runner = ["probe-rs", "run", "--chip", "RP2350", "--no-timestamps"]
+runner = ["probe-rs", "run", "--chip", "RP235x", "--no-timestamps"]
 rustflags = [
   "-C", "link-arg=-Tlink.x",
 ]
