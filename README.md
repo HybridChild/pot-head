@@ -130,28 +130,44 @@ loop {
 ## Memory Footprint
 
 **Static ROM Configuration:**
-- Config stored in flash: 40-44 bytes (depends on type parameters + snap zones)
-- Runtime state in RAM: 184 bytes per instance
+- Config stored in flash: 40-44 bytes (depends on type parameters)
+- Runtime state in RAM: 188 bytes per instance
 
 **Typical costs:**
-- `PotHead<u16, u16>` (integer scaling): 224 bytes RAM
-- `PotHead<u16, f32>` (typical audio/control): 228 bytes RAM
+- `PotHead<u16, u16>` (integer scaling): 188 bytes RAM
+- `PotHead<u16, f32>` (typical audio/control): 188 bytes RAM
 - Filter state: Included in base cost
-- Moving average buffer: `WINDOW_SIZE × sizeof(TIn)` bytes additional (if enabled)
+- Moving average buffer: `WINDOW_SIZE × 4` bytes additional (if enabled)
 
 **Example:** A mixer with 8 faders using `PotHead<u16, f32>` with EMA filter and grab-mode:
 - **Flash:** ~352 bytes (configs) + code
-- **RAM:** 1,824 bytes (8 × 228 bytes)
+- **RAM:** 1,504 bytes (8 × 188 bytes)
 
-*Measured on ARM Cortex-M4F/M7 (`thumbv7em-none-eabihf`). Run `tools/sizeof-calculator/generate-report.sh` to regenerate for different targets.*
+**Binary sizes:**
+- **Cortex-M0+ (no FPU):** 1.7KB (minimal) to 2.9KB (default with std-math)
+- **Cortex-M4F (with FPU):** 198B (minimal) to 624B (full features)
+
+*Measured on ARM Cortex-M4F/M7 (`thumbv7em-none-eabihf`). See [`reports/sizeof_report.md`](reports/sizeof_report.md) and [`reports/binary_report.md`](reports/binary_report.md) for detailed analysis.*
 
 ---
 
 ## Performance
 
 **Update cycle** (`update()` call):
-- Typical: TBD on Cortex-M0+ @ 125 MHz
-- With logarithmic curve: TBD (requires `f32` operations)
+
+**RP2040 (Cortex-M0+, 125 MHz, no FPU):**
+- Baseline (linear, no filter): 8.99µs (1,123 cycles)
+- With EMA filter: 12.72µs (1,590 cycles)
+- With logarithmic curve: 32.52µs (4,065 cycles)
+- Full featured: 47.02µs (5,877 cycles)
+
+**RP2350 (Cortex-M33F, 150 MHz, with FPU):**
+- Baseline (linear, no filter): 0.86µs (128 cycles)
+- With EMA filter: 1.00µs (150 cycles)
+- With logarithmic curve: 1.76µs (264 cycles)
+- Full featured: 2.28µs (341 cycles)
+
+*See [`reports/rp2040_benchmarks.md`](reports/rp2040_benchmarks.md) and [`reports/rp2350_benchmarks.md`](reports/rp2350_benchmarks.md) for complete benchmark data.*
 
 ---
 

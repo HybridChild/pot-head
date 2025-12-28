@@ -362,6 +362,12 @@ Provides: Linear curves, EMA filter, change threshold hysteresis, snap zones.
 - **Minimal branching**: Linear processing pipeline optimizes for CPU cache
 - **Feature compilation**: Disabled features don't exist in binary (zero overhead)
 
+**Update cycle performance:**
+- **RP2040 (M0+, no FPU)**: 9-47µs depending on features
+- **RP2350 (M33F, with FPU)**: 0.86-2.28µs depending on features
+
+See [`../reports/rp2040_benchmarks.md`](../reports/rp2040_benchmarks.md) and [`../reports/rp2350_benchmarks.md`](../reports/rp2350_benchmarks.md) for detailed performance data.
+
 ## Future Roadmap
 
 Deferred to Future Versions:
