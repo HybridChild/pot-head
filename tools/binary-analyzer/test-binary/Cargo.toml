@@ -1,0 +1,20 @@
+[package]
+name = "pot-head-binary-test"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+pot-head = { path = "../../..", default-features = false }
+
+[features]
+default = ["std-math", "grab-mode"]
+std-math = ["pot-head/std-math"]
+grab-mode = ["pot-head/grab-mode"]
+moving-average = ["pot-head/moving-average"]
+
+[profile.release]
+opt-level = "z"      # Optimize for size
+lto = true           # Link-time optimization for smaller binaries
+codegen-units = 1    # Better optimization (single compilation unit)
+panic = "abort"      # Smaller panic handler
