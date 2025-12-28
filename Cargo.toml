@@ -4,9 +4,10 @@ version = "0.1.0"
 edition = "2024"
 authors = ["Esben Dueholm Nørgaard"]
 license = "MIT OR Apache-2.0"
-description = ""
+description = "A no_std Rust library for processing potentiometer inputs with filters, curves, and response modes"
 repository = "https://github.com/HybridChild/pot-head"
-keywords = ["embedded", "potmeter", "pot", "no-std"]
+documentation = "https://docs.rs/pot-head"
+keywords = ["embedded", "potmeter", "pot", "potentiometer", "no-std"]
 categories = ["embedded", "no-std"]
 exclude = ["examples/", "tools"]
 
@@ -22,5 +23,4 @@ std-math = ["libm"]
 # Enables moving average filter (requires heapless buffer)
 moving-average = ["heapless"]
 # Enables grab modes (Pickup/PassThrough) for preset/automation handling
-# Adds ~24-40 bytes per PotHead instance depending on output type
 grab-mode = []
