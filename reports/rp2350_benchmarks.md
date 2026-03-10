@@ -25,7 +25,7 @@ CPU: 150 MHz, FPU: Single-precision (hard-float)
 Target: thumbv8m.main-none-eabihf
 FPU Enabled: true
 
-PotHead::update() Performance
+PotHead::process() Performance
 -----------------------------
 
 Scenario              Cycles      µs

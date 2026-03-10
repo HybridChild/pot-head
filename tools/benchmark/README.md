@@ -4,7 +4,7 @@ Hardware performance benchmarks for **pot-head** using real RP2040 and RP2350 mi
 
 ## Overview
 
-This tool measures the cycle-accurate performance of `PotHead::update()` on real ARM Cortex-M hardware:
+This tool measures the cycle-accurate performance of `PotHead::process()` on real ARM Cortex-M hardware:
 
 - **RP2040** - Cortex-M0+ @ 125 MHz, soft-float (no FPU)
 - **RP2350** - Cortex-M33F @ 150 MHz, hard-float (FPU)
@@ -116,5 +116,5 @@ This confirms hardware floating-point is active.
 ### Cycle Counts
 
 - Lower is better
-- Includes full `update()` pipeline overhead
+- Includes full `process()` pipeline overhead
 - Measured on real hardware, not simulation

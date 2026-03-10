@@ -50,7 +50,7 @@ pub extern "C" fn _start() -> ! {
     // Exercise update path with volatile operations
     // to prevent LLVM from optimizing away the entire logic
     let input = unsafe { core::ptr::read_volatile(&2048u16) };
-    let output = pot.update(input);
+    let output = pot.process(input);
 
     // Store result to prevent optimization
     unsafe {

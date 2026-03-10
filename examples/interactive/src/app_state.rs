@@ -33,7 +33,7 @@ impl AppState {
         // Initialize all pots with centered input
         let initial_input = 0.5;
         for pot in pots.iter_mut() {
-            pot.update(initial_input);
+            pot.process(initial_input);
         }
 
         Ok(Self {
@@ -56,7 +56,7 @@ impl AppState {
     pub fn select_next_pot(&mut self) {
         if !self.pots.is_empty() {
             // Release the current pot before switching
-            self.pots[self.selected_pot_index].release();
+            self.pots[self.selected_pot_index].detach();
 
             self.selected_pot_index = (self.selected_pot_index + 1) % self.pots.len();
         }
@@ -65,7 +65,7 @@ impl AppState {
     pub fn select_prev_pot(&mut self) {
         if !self.pots.is_empty() {
             // Release the current pot before switching
-            self.pots[self.selected_pot_index].release();
+            self.pots[self.selected_pot_index].detach();
 
             self.selected_pot_index = if self.selected_pot_index == 0 {
                 self.pots.len() - 1

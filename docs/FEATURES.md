@@ -18,7 +18,7 @@ static GAIN_CONFIG: Config<u16, f32> = Config {
     // ...
 };
 let mut gain_pot = PotHead::new(&GAIN_CONFIG)?;
-let gain: f32 = gain_pot.update(adc_value);
+let gain: f32 = gain_pot.process(adc_value);
 
 // Same type (default)
 static PWM_CONFIG: Config<u16> = Config {
@@ -29,7 +29,7 @@ static PWM_CONFIG: Config<u16> = Config {
     // ...
 };
 let mut pwm_pot = PotHead::new(&PWM_CONFIG)?;
-let pwm: u16 = pwm_pot.update(adc_value);
+let pwm: u16 = pwm_pot.process(adc_value);
 ```
 
 *Default `TOut = TIn` allows concise type annotations for same-type cases.*
@@ -232,24 +232,56 @@ grab_mode: GrabMode::None,
 
 ### Switching Active Parameters
 
-The intended pattern for *one physical pot controlling N virtual parameters* is one `PotHead` instance per parameter. Only the currently active instance receives `update()` calls.
-
-When switching which parameter the pot controls, call `reset_filter` before `set_virtual_value` to seed the EMA filter to the current physical position. Without this, a stale EMA filter will ramp toward the true position over several calls, which PassThrough mode can misread as physical movement and trigger a false grab:
+The intended pattern for *one physical pot controlling N virtual parameters* is one `PotHead` instance per parameter. Only the currently active instance receives `process()` calls.
 
 ```rust
-// Switching active parameter
-pots[new_band].reset_filter(raw_adc);
-pots[new_band].set_virtual_value(gain_to_virtual(eq_gains[new_band]));
+// One instance per parameter — only `active` receives process() each cycle
+let mut pots: [PotHead<u16, f32>; NUM_BANDS] = /* ... */;
+let mut eq_gains = [0.0f32; NUM_BANDS];
+let mut active: usize = 0;
+
+// In the main loop:
+let raw_adc: u16 = read_adc();
+eq_gains[active] = pots[active].process(raw_adc);
+apply_eq_gain(active, eq_gains[active]);
 ```
 
-`reset_filter` is a no-op when the filter is not EMA.
+Switching involves two steps — one on the outgoing instance, one on the incoming:
+
+- **`detach()`** — call on the outgoing instance. Snaps its virtual value to the current physical position, so if the user switches back, the pot is already at the right place and grabs immediately.
+- **`attach(raw_adc)`** — call on the incoming instance. Seeds the EMA filter to the current physical position so no cold-start ramp occurs, which PassThrough mode would otherwise misread as physical movement and trigger a false grab.
+
+```rust
+fn select_band(pots: &mut [PotHead<u16, f32>], active: &mut usize, new_band: usize, raw_adc: u16) {
+    pots[*active].detach();
+    pots[new_band].attach(raw_adc);
+    *active = new_band;
+}
+```
+
+If the incoming parameter's value has changed since it was last active (e.g. after a preset load), call `set_virtual_value` before `attach`:
+
+```rust
+pots[new_band].set_virtual_value(preset[new_band]);
+pots[new_band].attach(raw_adc);
+```
+
+For preset loads across all bands, `set_virtual_value` each instance — the filter will be reseeded naturally on the next `attach`:
+
+```rust
+for (pot, &value) in pots.iter_mut().zip(preset.iter()) {
+    pot.set_virtual_value(value);
+}
+```
+
+For automation on an already-active pot, use `set_virtual_value` directly — the filter is warm and does not need reseeding.
 
 ### UI Support
 
 Query physical position during grab mode for dual-state display:
 
 ```rust
-let output = pot.update(raw_adc);
+let output = pot.process(raw_adc);
 
 if pot.is_waiting_for_grab() {
     let physical = pot.physical_position();  // Where pot actually is
@@ -327,7 +359,7 @@ Validation checks:
 Invalid inputs handled gracefully:
 
 ```rust
-let output = pot.update(raw_adc);
+let output = pot.process(raw_adc);
 ```
 
 - Out-of-range inputs: Clamped to `[input_min, input_max]`
@@ -372,7 +404,7 @@ Provides: Linear curves, EMA filter, change threshold hysteresis, snap zones.
 ## Performance Characteristics
 
 - **Zero allocations**: All processing uses stack or static storage
-- **Predictable timing**: `update()` is deterministic, suitable for real-time
+- **Predictable timing**: `process()` is deterministic, suitable for real-time
 - **Minimal branching**: Linear processing pipeline optimizes for CPU cache
 - **Feature compilation**: Disabled features don't exist in binary (zero overhead)
 

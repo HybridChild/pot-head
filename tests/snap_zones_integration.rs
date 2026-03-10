@@ -27,14 +27,14 @@ fn test_snap_zone_basic() {
     let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Within snap zone - should snap to 0.0
-    let result = pot.update(2); // 2% of range
+    let result = pot.process(2); // 2% of range
     assert_eq!(result, 0.0, "Should snap to 0.0");
 
-    let result = pot.update(5); // 5% of range
+    let result = pot.process(5); // 5% of range
     assert_eq!(result, 0.0, "Should snap to 0.0 at boundary");
 
     // Outside snap zone - should pass through
-    let result = pot.update(10); // 10% of range
+    let result = pot.process(10); // 10% of range
     assert!(
         (result - 0.1).abs() < 0.01,
         "Should be ~0.1, got {}",
@@ -66,12 +66,12 @@ fn test_multiple_snap_zones() {
     let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Test each snap zone
-    assert_eq!(pot.update(1), 0.0); // Snap to 0%
-    assert_eq!(pot.update(50), 0.5); // Snap to 50%
-    assert_eq!(pot.update(99), 1.0); // Snap to 100%
+    assert_eq!(pot.process(1), 0.0); // Snap to 0%
+    assert_eq!(pot.process(50), 0.5); // Snap to 50%
+    assert_eq!(pot.process(99), 1.0); // Snap to 100%
 
     // Test between zones - no snapping
-    let result = pot.update(25);
+    let result = pot.process(25);
     assert!(
         (result - 0.25).abs() < 0.01,
         "Should be ~0.25, got {}",
@@ -101,7 +101,7 @@ fn test_dead_zone_basic() {
     let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Move to 25% (outside dead zone)
-    let result = pot.update(25);
+    let result = pot.process(25);
     assert!(
         (result - 0.25).abs() < 0.01,
         "Should be ~0.25, got {}",
@@ -109,7 +109,7 @@ fn test_dead_zone_basic() {
     );
 
     // Enter dead zone - output should freeze at last value (0.25)
-    let result = pot.update(50);
+    let result = pot.process(50);
     assert!(
         (result - 0.25).abs() < 0.01,
         "Dead zone should hold last output (0.25), got {}",
@@ -117,7 +117,7 @@ fn test_dead_zone_basic() {
     );
 
     // Still in dead zone - should still be frozen
-    let result = pot.update(52);
+    let result = pot.process(52);
     assert!(
         (result - 0.25).abs() < 0.01,
         "Dead zone should hold last output (0.25), got {}",
@@ -125,7 +125,7 @@ fn test_dead_zone_basic() {
     );
 
     // Exit dead zone - should update again
-    let result = pot.update(60);
+    let result = pot.process(60);
     assert!(
         (result - 0.6).abs() < 0.01,
         "Should be ~0.6 after exiting dead zone, got {}",
@@ -156,10 +156,10 @@ fn test_mixed_snap_and_dead_zones() {
     let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Snap zone behavior
-    assert_eq!(pot.update(3), 0.0, "Should snap to 0.0");
+    assert_eq!(pot.process(3), 0.0, "Should snap to 0.0");
 
     // Move outside snap zone
-    let result = pot.update(25);
+    let result = pot.process(25);
     assert!(
         (result - 0.25).abs() < 0.01,
         "Should be ~0.25, got {}",
@@ -167,7 +167,7 @@ fn test_mixed_snap_and_dead_zones() {
     );
 
     // Enter dead zone - should freeze at 0.25
-    let result = pot.update(50);
+    let result = pot.process(50);
     assert!(
         (result - 0.25).abs() < 0.01,
         "Dead zone should hold 0.25, got {}",
@@ -199,7 +199,7 @@ fn test_overlapping_zones_first_match_wins() {
     let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Input at 5% - matches both zones, but first one wins
-    let result = pot.update(5);
+    let result = pot.process(5);
     assert_eq!(
         result, 0.0,
         "First zone should win (snap to 0.0), got {}",
@@ -227,9 +227,9 @@ fn test_empty_snap_zones() {
     let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Should pass through unchanged
-    assert_eq!(pot.update(0), 0.0);
-    assert_eq!(pot.update(50), 0.5);
-    assert_eq!(pot.update(100), 1.0);
+    assert_eq!(pot.process(0), 0.0);
+    assert_eq!(pot.process(50), 0.5);
+    assert_eq!(pot.process(100), 1.0);
 }
 
 #[test]

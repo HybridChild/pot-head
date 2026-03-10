@@ -45,7 +45,7 @@ where
         self.config
     }
 
-    pub fn update(&mut self, input: TIn) -> TOut {
+    pub fn process(&mut self, input: TIn) -> TOut {
         // Normalize input to 0.0..1.0
         let normalized = self.normalize_input(input);
 
@@ -136,6 +136,14 @@ where
         (clamped - min_f) / (max_f - min_f)
     }
 
+    #[cfg(feature = "grab-mode")]
+    fn normalize_output(&self, value: TOut) -> f32 {
+        let value_f = value.as_();
+        let min_f = self.config.output_min.as_();
+        let max_f = self.config.output_max.as_();
+        (value_f - min_f) / (max_f - min_f)
+    }
+
     fn denormalize_output(&self, normalized: f32) -> TOut {
         let min_f = self.config.output_min.as_();
         let max_f = self.config.output_max.as_();
@@ -171,7 +179,7 @@ where
 
             GrabMode::PassThrough => {
                 if !self.state.grabbed {
-                    // First read after set_virtual_value - just initialize position
+                    // First read after grab reset - initialize last_physical position
                     if !self.state.passthrough_initialized {
                         self.state.last_physical = value;
                         self.state.passthrough_initialized = true;
@@ -234,38 +242,45 @@ where
     /// Set the virtual parameter value (e.g., after preset change or automation).
     /// This unlocks grab mode, requiring the pot to be grabbed again.
     ///
-    /// When using PassThrough mode, call [`reset_filter`](Self::reset_filter) with the current
-    /// raw ADC reading before calling this to avoid a false crossing on reactivation.
+    /// `value` is in the same output space as `process()` returns.
+    ///
+    /// When switching which parameter a physical pot controls, use [`attach`](Self::attach) instead —
+    /// it also seeds the filter to prevent false grabs on reactivation.
     #[cfg(feature = "grab-mode")]
-    pub fn set_virtual_value(&mut self, value: f32) {
-        self.state.virtual_value = value;
+    pub fn set_virtual_value(&mut self, value: TOut) {
+        self.state.virtual_value = self.normalize_output(value);
         self.state.grabbed = false;
         self.state.passthrough_initialized = false;
     }
 
-    /// Reseed the internal EMA filter to the current physical input.
+    /// Attach a physical pot to this parameter.
     ///
-    /// Call this immediately before [`set_virtual_value`](Self::set_virtual_value) when
-    /// switching which parameter the pot controls. This prevents a cold-start EMA ramp
-    /// from being misdetected as physical pot movement in PassThrough mode.
+    /// Call this when switching which parameter the pot controls. Seeds the EMA filter
+    /// to the current physical position so grab detection starts from a clean state —
+    /// no cold-start ramp that PassThrough mode could misread as physical movement.
     ///
-    /// No-op if the filter is not EMA.
+    /// If the parameter value has changed since it was last active (e.g. after a preset
+    /// load), call `set_virtual_value` before `attach`.
+    ///
+    /// Pair with [`detach`](Self::detach) on the outgoing parameter.
     #[cfg(feature = "grab-mode")]
-    pub fn reset_filter(&mut self, current_input: TIn) {
+    pub fn attach(&mut self, current_input: TIn) {
         let normalized = self.normalize_input(current_input);
         if let Some(ref mut ema) = self.state.ema_filter {
             ema.reset(normalized);
         }
+        self.state.grabbed = false;
+        self.state.passthrough_initialized = false;
     }
 
-    /// Release grab and set virtual value to current physical position.
-    /// Useful when switching which parameter a physical pot controls.
+    /// Detach the physical pot from this parameter.
     ///
-    /// After calling this, the pot will be ungrabbed and the virtual value
-    /// will be set to the current physical position. The pot must be moved
-    /// to re-grab (in Pickup/PassThrough modes).
+    /// Snaps the virtual value to the current physical position. Call this on the
+    /// outgoing parameter when switching pot control to another parameter.
+    ///
+    /// Pair with [`attach`](Self::attach) on the incoming parameter.
     #[cfg(feature = "grab-mode")]
-    pub fn release(&mut self) {
+    pub fn detach(&mut self) {
         self.state.virtual_value = self.state.physical_position;
         self.state.grabbed = false;
         self.state.passthrough_initialized = false;

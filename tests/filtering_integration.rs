@@ -23,16 +23,16 @@ fn test_pothead_with_ema_filter() {
     let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // First value initializes filter
-    let out1 = pot.update(0);
+    let out1 = pot.process(0);
     assert_eq!(out1, 0.0);
 
     // Step to max - should be smoothed
-    let out2 = pot.update(4095);
+    let out2 = pot.process(4095);
     // With alpha=0.3: 0.3 * 1.0 + 0.7 * 0.0 = 0.3
     assert!((out2 - 0.3).abs() < 0.001, "Expected ~0.3, got {}", out2);
 
     // Another step - continues smoothing
-    let out3 = pot.update(4095);
+    let out3 = pot.process(4095);
     // 0.3 * 1.0 + 0.7 * 0.3 = 0.51
     assert!((out3 - 0.51).abs() < 0.01, "Expected ~0.51, got {}", out3);
 }
@@ -56,12 +56,12 @@ fn test_pothead_with_moving_average_filter() {
     let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // Build up moving average
-    assert_eq!(pot.update(0), 0.0); // [0.0] avg = 0.0
-    assert_eq!(pot.update(30), 0.15); // [0.0, 0.3] avg = 0.15
-    assert_eq!(pot.update(60), 0.3); // [0.0, 0.3, 0.6] avg = 0.3
+    assert_eq!(pot.process(0), 0.0); // [0.0] avg = 0.0
+    assert_eq!(pot.process(30), 0.15); // [0.0, 0.3] avg = 0.15
+    assert_eq!(pot.process(60), 0.3); // [0.0, 0.3, 0.6] avg = 0.3
 
     // Window slides
-    let out = pot.update(90); // [0.9, 0.3, 0.6] avg = 0.6
+    let out = pot.process(90); // [0.9, 0.3, 0.6] avg = 0.6
     assert!((out - 0.6).abs() < 0.001, "Expected 0.6, got {}", out);
 }
 
@@ -87,7 +87,7 @@ fn test_filter_smooths_noisy_input() {
     let mut outputs = Vec::new();
 
     for &sample in &noisy_samples {
-        outputs.push(pot.update(sample));
+        outputs.push(pot.process(sample));
     }
 
     // Output should be less noisy than input
@@ -129,9 +129,9 @@ fn test_no_filter_passes_through() {
     let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // No filtering - direct mapping
-    assert_eq!(pot.update(0), 0.0);
-    assert_eq!(pot.update(50), 0.5);
-    assert_eq!(pot.update(100), 1.0);
+    assert_eq!(pot.process(0), 0.0);
+    assert_eq!(pot.process(50), 0.5);
+    assert_eq!(pot.process(100), 1.0);
 }
 
 #[test]
@@ -152,15 +152,15 @@ fn test_filter_combined_with_hysteresis() {
     let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // Initialize at midpoint
-    let initial = pot.update(500);
+    let initial = pot.process(500);
     assert!((initial - 0.5).abs() < 0.001);
 
     // Small change - filtered but still below hysteresis threshold
-    let out2 = pot.update(550); // Filtered to ~0.525, below 0.1 threshold
+    let out2 = pot.process(550); // Filtered to ~0.525, below 0.1 threshold
     // Should stay at 0.5 due to hysteresis
     assert_eq!(out2, initial);
 
     // Large change - exceeds hysteresis after filtering
-    let out3 = pot.update(800);
+    let out3 = pot.process(800);
     assert!(out3 > initial);
 }

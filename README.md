@@ -101,7 +101,7 @@ let mut volume_pot = PotHead::new(&VOLUME_CONFIG);
 // In your main loop:
 loop {
     let adc_value: u16 = read_adc(); // Your hardware-specific ADC read
-    let volume_db: f32 = volume_pot.update(adc_value);
+    let volume_db: f32 = volume_pot.process(adc_value);
 
     set_audio_volume(volume_db); // Your application logic
 }
@@ -149,7 +149,7 @@ loop {
 
 ## Performance
 
-**Update cycle** (`update()` call):
+**Update cycle** (`process()` call):
 
 | Platform | Configuration | Time | Cycles |
 |----------|--------------|------|--------|

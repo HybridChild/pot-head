@@ -24,7 +24,7 @@ Platform: RP2040 (Cortex-M0+)
 CPU: 125 MHz, FPU: None (soft-float)
 Target: thumbv6m-none-eabi
 
-PotHead::update() Performance
+PotHead::process() Performance
 -----------------------------
 
 Scenario              Cycles      µs
