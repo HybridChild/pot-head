@@ -7,6 +7,7 @@ license = "MIT OR Apache-2.0"
 description = "A no_std Rust library for processing potentiometer inputs with filters, curves, and response modes"
 repository = "https://github.com/HybridChild/pot-head"
 documentation = "https://docs.rs/pot-head"
+readme = "README.md"
 keywords = ["embedded", "potmeter", "pot", "potentiometer", "no-std"]
 categories = ["embedded", "no-std"]
 exclude = ["examples/", "tools"]
