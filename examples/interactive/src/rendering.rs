@@ -193,7 +193,7 @@ pub fn render(state: &mut AppState) -> Result<()> {
 
         // Only update the selected pot with noisy input
         if is_selected {
-            pot.update(noisy_input);
+            pot.process(noisy_input);
         }
 
         let info = pot.get_render_info();

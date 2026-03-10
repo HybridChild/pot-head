@@ -66,7 +66,7 @@ fn main() {
 
     println!("   Input → Output");
     for &sample in &noisy_samples {
-        let output = pot.update(sample);
+        let output = pot.process(sample);
         println!("   {:4} → {:4}", sample, output);
     }
     println!();
@@ -78,7 +78,7 @@ fn main() {
     // Simulate noisy readings
     println!("   Input → Output (filtered)");
     for &sample in &noisy_samples {
-        let output = pot.update(sample);
+        let output = pot.process(sample);
         println!("   {:4} → {:4}", sample, output);
     }
     println!();
@@ -90,7 +90,7 @@ fn main() {
     // Simulate noisy readings around 2048 (50%)
     println!("   Input → Output (filtered)");
     for &sample in &noisy_samples {
-        let output = pot.update(sample);
+        let output = pot.process(sample);
         println!("   {:4} → {:4}", sample, output);
     }
     println!();
@@ -104,7 +104,7 @@ fn main() {
     println!("   Input → Output");
 
     for &sample in &noisy_samples {
-        let output = pot.update(sample);
+        let output = pot.process(sample);
         println!("   {:4} → {:4}", sample, output);
     }
 }

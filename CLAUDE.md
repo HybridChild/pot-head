@@ -72,7 +72,7 @@ grab-mode = []                # Pickup/PassThrough modes (~24-40 bytes)
 ### Code Organization
 - Each major feature in its own module
 - Feature-gate only dependency-driven code (libm, heapless) and grab-mode
-- Keep processing pipeline in `PotHead::update()` clean and linear
+- Keep processing pipeline in `PotHead::process()` clean and linear
 
 ### Processing Pipeline
 ```rust
@@ -87,7 +87,7 @@ Input (TIn)
 ```
 
 ### Performance Requirements
-- `update()` called in tight loops (1-10ms intervals)
+- `process()` called in tight loops (1-10ms intervals)
 - Zero allocations (stack only)
 - Minimal branching in hot path
 - All processing modes compiled in by default (minimal overhead)
@@ -109,7 +109,7 @@ static VOLUME_CONFIG: Config<u16, f32> = Config {
     output_max: 1.0,
     curve: ResponseCurve::Logarithmic,
     filter: NoiseFilter::ExponentialMovingAverage { alpha: 0.3 },
-    hysteresis: HysteresisMode::ChangeThreshold(8),
+    hysteresis: HysteresisMode::ChangeThreshold { threshold: 0.05 },
     snap_zones: &[SnapZone::new(0.0, 0.02, SnapZoneType::Snap)],
     grab_mode: GrabMode::Pickup,
 };
@@ -126,7 +126,7 @@ const _: () = {
 let mut pot = PotHead::new(&VOLUME_CONFIG);
 
 // In main loop:
-let volume: f32 = pot.update(adc_value);
+let volume: f32 = pot.process(adc_value);
 ```
 
 ## Documentation Requirements

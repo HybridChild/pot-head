@@ -23,18 +23,18 @@ fn test_pothead_with_no_hysteresis() {
     let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // Start at midpoint
-    let output1 = pot.update(2048);
+    let output1 = pot.process(2048);
     assert!((output1 - 0.5).abs() < 0.001);
 
     // Small change should pass through (no hysteresis blocking it)
-    let output2 = pot.update(2049);
+    let output2 = pot.process(2049);
     assert!(
         output2 > output1,
         "Small changes should pass through with no hysteresis"
     );
 
     // Another small change should also pass through
-    let output3 = pot.update(2050);
+    let output3 = pot.process(2050);
     assert!(
         output3 > output2,
         "Every change should update with no hysteresis"
@@ -59,26 +59,26 @@ fn test_pothead_with_change_threshold() {
     let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // Initial value
-    let initial = pot.update(2048); // ~50%
+    let initial = pot.process(2048); // ~50%
     assert!((initial - 0.5).abs() < 0.001);
 
     // Small change (< 5%) should be ignored
-    let output = pot.update(2150); // ~52.5% - change of 2.5%
+    let output = pot.process(2150); // ~52.5% - change of 2.5%
     assert_eq!(output, initial, "Small change should be ignored");
 
     // Large change (> 5%) should update
     // Need 5% of 4095 = ~205 units change
-    let output = pot.update(2300); // ~56.2% - change of 6.2%
+    let output = pot.process(2300); // ~56.2% - change of 6.2%
     assert!(output != initial, "Output should have changed");
     assert!((output - 0.562).abs() < 0.001);
 
     // Small change from new value should be ignored
     let prev_output = output;
-    let output = pot.update(2400); // ~58.6% - change of 2.4%
+    let output = pot.process(2400); // ~58.6% - change of 2.4%
     assert_eq!(output, prev_output, "Small change should be ignored");
 
     // Another large change should update
-    let output = pot.update(2800); // ~68.4% - change of 12.2%
+    let output = pot.process(2800); // ~68.4% - change of 12.2%
     assert!(output != prev_output, "Output should have changed");
     assert!((output - 0.684).abs() < 0.001);
 }
@@ -104,23 +104,23 @@ fn test_pothead_with_schmitt_trigger() {
     let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // Start below falling threshold - should output falling value
-    let output = pot.update(1000); // ~24%
+    let output = pot.process(1000); // ~24%
     assert_eq!(output, 0.4);
 
     // Move between thresholds - should stay at falling value
-    let output = pot.update(2048); // ~50%
+    let output = pot.process(2048); // ~50%
     assert_eq!(output, 0.4);
 
     // Cross rising threshold - should switch to rising value
-    let output = pot.update(2700); // ~66%
+    let output = pot.process(2700); // ~66%
     assert_eq!(output, 0.6);
 
     // Move between thresholds - should stay at rising value
-    let output = pot.update(2048); // ~50%
+    let output = pot.process(2048); // ~50%
     assert_eq!(output, 0.6);
 
     // Cross falling threshold - should switch to falling value
-    let output = pot.update(1500); // ~37%
+    let output = pot.process(1500); // ~37%
     assert_eq!(output, 0.4);
 }
 
@@ -143,15 +143,15 @@ fn test_hysteresis_with_different_types() {
     let mut pot = PotHead::new(&CONFIG).expect("Valid config");
 
     // Initial value at center
-    let output = pot.update(127); // ~50%
+    let output = pot.process(127); // ~50%
     assert_eq!(output, 0);
 
     // Small change should be ignored
-    let output = pot.update(140); // ~55%
+    let output = pot.process(140); // ~55%
     assert_eq!(output, 0);
 
     // Large change should update
-    let output = pot.update(180); // ~70%
+    let output = pot.process(180); // ~70%
     assert_ne!(output, 0);
     assert!((output - 40).abs() < 2); // ~40
 }

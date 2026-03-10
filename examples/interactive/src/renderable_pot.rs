@@ -30,7 +30,7 @@ pub struct RenderInfo {
 /// This abstracts over specific input/output types.
 pub trait RenderablePot {
     /// Update the pot with a normalized input value (0.0 = min, 1.0 = max)
-    fn update(&mut self, normalized_input: f32);
+    fn process(&mut self, normalized_input: f32);
 
     /// Get rendering information for this pot
     fn get_render_info(&self) -> RenderInfo;
@@ -39,5 +39,5 @@ pub trait RenderablePot {
     fn active_color_scheme(&self, is_selected: bool) -> ColorScheme;
 
     /// Release grab mode (for mode switching)
-    fn release(&mut self);
+    fn detach(&mut self);
 }

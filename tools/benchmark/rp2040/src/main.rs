@@ -47,7 +47,7 @@ fn main() -> ! {
     );
     rprintln!("Target: thumbv6m-none-eabi");
     rprintln!("");
-    rprintln!("PotHead::update() Performance");
+    rprintln!("PotHead::process() Performance");
     rprintln!("-----------------------------");
     rprintln!("");
     rprintln!("Scenario              Cycles      µs");
@@ -110,7 +110,7 @@ fn bench_baseline() {
         }
 
         let input = core::ptr::read_volatile(&2048u16);
-        let output = (*pot_ptr).as_mut().unwrap().update(input);
+        let output = (*pot_ptr).as_mut().unwrap().process(input);
         core::ptr::write_volatile(&raw mut OUTPUT_F32, output);
     }
 }
@@ -126,7 +126,7 @@ fn bench_with_ema() {
         }
 
         let input = core::ptr::read_volatile(&2048u16);
-        let output = (*pot_ptr).as_mut().unwrap().update(input);
+        let output = (*pot_ptr).as_mut().unwrap().process(input);
         core::ptr::write_volatile(&raw mut OUTPUT_F32, output);
     }
 }
@@ -143,7 +143,7 @@ fn bench_with_log_curve() {
         }
 
         let input = core::ptr::read_volatile(&2048u16);
-        let output = (*pot_ptr).as_mut().unwrap().update(input);
+        let output = (*pot_ptr).as_mut().unwrap().process(input);
         core::ptr::write_volatile(&raw mut OUTPUT_F32, output);
     }
 }
@@ -159,7 +159,7 @@ fn bench_full_featured() {
         }
 
         let input = core::ptr::read_volatile(&2048u16);
-        let output = (*pot_ptr).as_mut().unwrap().update(input);
+        let output = (*pot_ptr).as_mut().unwrap().process(input);
         core::ptr::write_volatile(&raw mut OUTPUT_F32, output);
     }
 }
@@ -176,7 +176,7 @@ fn bench_ma_window_4() {
         }
 
         let input = core::ptr::read_volatile(&2048u16);
-        let output = (*pot_ptr).as_mut().unwrap().update(input);
+        let output = (*pot_ptr).as_mut().unwrap().process(input);
         core::ptr::write_volatile(&raw mut OUTPUT_F32, output);
     }
 }
@@ -193,7 +193,7 @@ fn bench_ma_window_16() {
         }
 
         let input = core::ptr::read_volatile(&2048u16);
-        let output = (*pot_ptr).as_mut().unwrap().update(input);
+        let output = (*pot_ptr).as_mut().unwrap().process(input);
         core::ptr::write_volatile(&raw mut OUTPUT_F32, output);
     }
 }
@@ -209,7 +209,7 @@ fn bench_u16_to_u16() {
         }
 
         let input = core::ptr::read_volatile(&2048u16);
-        let output = (*pot_ptr).as_mut().unwrap().update(input);
+        let output = (*pot_ptr).as_mut().unwrap().process(input);
         core::ptr::write_volatile(&raw mut OUTPUT_U16, output);
     }
 }

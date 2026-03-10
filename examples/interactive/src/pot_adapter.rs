@@ -32,7 +32,7 @@ where
         input_max: TIn,
     ) -> Self {
         // Initialize last_output to the minimum of the output range
-        // This will be properly set when update() is first called
+        // This will be properly set when process() is first called
         let config = pot.config();
         let initial_output = if config.output_min.as_() < config.output_max.as_() {
             config.output_min
@@ -73,10 +73,10 @@ where
     TOut: Copy + PartialOrd + AsPrimitive<f32> + Display,
     f32: AsPrimitive<TIn> + AsPrimitive<TOut>,
 {
-    fn update(&mut self, normalized_input: f32) {
+    fn process(&mut self, normalized_input: f32) {
         let input = self.denormalize_input(normalized_input);
         self.last_input = input;
-        self.last_output = self.pot.update(input);
+        self.last_output = self.pot.process(input);
     }
 
     fn get_render_info(&self) -> RenderInfo {
@@ -194,7 +194,7 @@ where
         }
     }
 
-    fn release(&mut self) {
-        self.pot.release();
+    fn detach(&mut self) {
+        self.pot.detach();
     }
 }

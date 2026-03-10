@@ -23,9 +23,9 @@ fn test_linear_curve_integration() {
     let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Linear curve should map directly
-    assert_eq!(pot.update(0), 0.0);
-    assert_eq!(pot.update(50), 0.5);
-    assert_eq!(pot.update(100), 1.0);
+    assert_eq!(pot.process(0), 0.0);
+    assert_eq!(pot.process(50), 0.5);
+    assert_eq!(pot.process(100), 1.0);
 }
 
 #[cfg(feature = "std-math")]
@@ -47,8 +47,8 @@ fn test_logarithmic_curve_integration() {
     let mut pot = PotHead::new(&CONFIG).unwrap();
 
     // Logarithmic curve boundaries
-    let min_output = pot.update(0);
-    let max_output = pot.update(100);
+    let min_output = pot.process(0);
+    let max_output = pot.process(100);
 
     assert!(
         (min_output - 0.0).abs() < 0.001,
@@ -62,7 +62,7 @@ fn test_logarithmic_curve_integration() {
     );
 
     // Logarithmic curve should compress lower values
-    let quarter_output = pot.update(25);
+    let quarter_output = pot.process(25);
     assert!(
         quarter_output < 0.15,
         "Quarter should be <0.2 with log curve, got {}",
@@ -70,7 +70,7 @@ fn test_logarithmic_curve_integration() {
     );
 
     // Middle should be less than 0.5 (shifted down)
-    let mid_output = pot.update(50);
+    let mid_output = pot.process(50);
     assert!(
         mid_output < 0.5,
         "Middle should be <0.5 with log curve, got {}",
