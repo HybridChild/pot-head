@@ -35,10 +35,12 @@ impl EmaFilter {
         output
     }
 
-    /// Reset filter state
-    pub fn reset(&mut self) {
-        self.initialized = false;
-        self.previous = 0.0;
+    /// Reset filter state, seeding it to a known value.
+    ///
+    /// The next `apply()` call will start from `value` rather than cold-starting at 0.
+    pub fn reset(&mut self, value: f32) {
+        self.previous = value;
+        self.initialized = true;
     }
 }
 
@@ -85,14 +87,15 @@ mod tests {
     }
 
     #[test]
-    fn reset_reinitializes() {
+    fn reset_seeds_to_value() {
         let mut filter = EmaFilter::new();
         filter.apply(0.5, 0.3);
         filter.apply(0.7, 0.3);
 
-        filter.reset();
+        filter.reset(0.8);
 
-        // After reset, first call should return input directly
-        assert_eq!(filter.apply(1.0, 0.3), 1.0);
+        // After reset, first call starts from seeded value (0.3 * 1.0 + 0.7 * 0.8)
+        let expected = 0.3 * 1.0 + 0.7 * 0.8;
+        assert!((filter.apply(1.0, 0.3) - expected).abs() < 1e-6);
     }
 }
