@@ -233,11 +233,29 @@ where
 
     /// Set the virtual parameter value (e.g., after preset change or automation).
     /// This unlocks grab mode, requiring the pot to be grabbed again.
+    ///
+    /// When using PassThrough mode, call [`reset_filter`](Self::reset_filter) with the current
+    /// raw ADC reading before calling this to avoid a false crossing on reactivation.
     #[cfg(feature = "grab-mode")]
     pub fn set_virtual_value(&mut self, value: f32) {
         self.state.virtual_value = value;
         self.state.grabbed = false;
-        self.state.passthrough_initialized = false; // Reset for PassThrough mode
+        self.state.passthrough_initialized = false;
+    }
+
+    /// Reseed the internal EMA filter to the current physical input.
+    ///
+    /// Call this immediately before [`set_virtual_value`](Self::set_virtual_value) when
+    /// switching which parameter the pot controls. This prevents a cold-start EMA ramp
+    /// from being misdetected as physical pot movement in PassThrough mode.
+    ///
+    /// No-op if the filter is not EMA.
+    #[cfg(feature = "grab-mode")]
+    pub fn reset_filter(&mut self, current_input: TIn) {
+        let normalized = self.normalize_input(current_input);
+        if let Some(ref mut ema) = self.state.ema_filter {
+            ema.reset(normalized);
+        }
     }
 
     /// Release grab and set virtual value to current physical position.

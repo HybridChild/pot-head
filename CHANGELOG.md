@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `PotHead::reset_filter(current_input: TIn)` — seeds the EMA filter to the current physical position before `set_virtual_value()`, preventing false PassThrough grabs on reactivation (requires `grab-mode` feature)
+
+### Fixed
+- PassThrough mode could falsely trigger a grab when a `PotHead` instance was reactivated after being idle: the stale EMA filter would ramp toward the true physical position over several `update()` calls, which the crossing detector misread as physical pot movement
+
+### Changed
+- `EmaFilter::reset` now takes a seed value `reset(value: f32)` and initializes the filter to that value, rather than cold-resetting to uninitialized state
+
 ## [0.1.0] - 2025-12-28
 
 ### Added

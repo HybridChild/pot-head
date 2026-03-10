@@ -230,6 +230,20 @@ grab_mode: GrabMode::None,
 
 *Physical pot immediately controls output (may cause jumps).*
 
+### Switching Active Parameters
+
+The intended pattern for *one physical pot controlling N virtual parameters* is one `PotHead` instance per parameter. Only the currently active instance receives `update()` calls.
+
+When switching which parameter the pot controls, call `reset_filter` before `set_virtual_value` to seed the EMA filter to the current physical position. Without this, a stale EMA filter will ramp toward the true position over several calls, which PassThrough mode can misread as physical movement and trigger a false grab:
+
+```rust
+// Switching active parameter
+pots[new_band].reset_filter(raw_adc);
+pots[new_band].set_virtual_value(gain_to_virtual(eq_gains[new_band]));
+```
+
+`reset_filter` is a no-op when the filter is not EMA.
+
 ### UI Support
 
 Query physical position during grab mode for dual-state display:
