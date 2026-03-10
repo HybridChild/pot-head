@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `PotHead::attach(current_input: TIn)` — attaches the physical pot to this parameter; seeds the EMA filter to the current physical position to prevent false grabs (requires `grab-mode` feature)
-- `PotHead::detach()` — detaches the physical pot from this parameter; snaps virtual value to current physical position so re-attaching grabs immediately (requires `grab-mode` feature)
+- `PotHead::detach()` — detaches the physical pot from this parameter; if the pot was grabbed, snaps virtual value to current physical position so re-attaching requires passing through it again; if not yet grabbed, leaves virtual value unchanged to preserve the stored parameter value (requires `grab-mode` feature)
 
 ### Fixed
 - PassThrough mode could falsely trigger a grab when a `PotHead` instance was reactivated after being idle: the stale EMA filter would ramp toward the true physical position over several `process()` calls, which the crossing detector misread as physical pot movement

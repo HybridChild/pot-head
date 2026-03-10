@@ -248,7 +248,7 @@ apply_eq_gain(active, eq_gains[active]);
 
 Switching involves two steps — one on the outgoing instance, one on the incoming:
 
-- **`detach()`** — call on the outgoing instance. Snaps its virtual value to the current physical position, so if the user switches back, the pot is already at the right place and grabs immediately.
+- **`detach()`** — call on the outgoing instance. If the pot was grabbed, snaps its virtual value to the current physical position so the user must pass through it again to re-grab on the next `attach()`. If the pot was not yet grabbed, `virtual_value` is left unchanged — it already holds the correct stored parameter value. Safe to call unconditionally in both cases.
 - **`attach(raw_adc)`** — call on the incoming instance. Seeds the EMA filter to the current physical position so no cold-start ramp occurs, which PassThrough mode would otherwise misread as physical movement and trigger a false grab.
 
 ```rust

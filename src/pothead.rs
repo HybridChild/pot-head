@@ -275,13 +275,20 @@ where
 
     /// Detach the physical pot from this parameter.
     ///
-    /// Snaps the virtual value to the current physical position. Call this on the
-    /// outgoing parameter when switching pot control to another parameter.
+    /// If the pot was grabbed (actively tracking this parameter), snapshots the current
+    /// physical position into `virtual_value` so the user must pass through it again to
+    /// re-grab on the next [`attach`](Self::attach). If the pot was not yet grabbed
+    /// (still waiting to cross the stored value), `virtual_value` is left unchanged —
+    /// it already holds the correct stored parameter value and overwriting it with the
+    /// physical position would corrupt it.
     ///
+    /// Safe to call unconditionally when switching pot control to another parameter.
     /// Pair with [`attach`](Self::attach) on the incoming parameter.
     #[cfg(feature = "grab-mode")]
     pub fn detach(&mut self) {
-        self.state.virtual_value = self.state.physical_position;
+        if self.state.grabbed {
+            self.state.virtual_value = self.state.physical_position;
+        }
         self.state.grabbed = false;
         self.state.passthrough_initialized = false;
     }
