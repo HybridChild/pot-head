@@ -1,13 +1,13 @@
 # pot-head
 
-A `no_std` Rust library for processing potentiometer inputs in embedded systems.
+A `no_std` Rust library for processing raw potmeter inputs in embedded systems.
 
 [![Platform](https://img.shields.io/badge/platform-no_std-blue)](https://github.com/HybridChild/pot-head)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-green)](https://github.com/HybridChild/pot-head)
 
 ## Overview
 
-**pot-head** transforms raw ADC values into clean, processed output values through configurable filters, curves, and response modes.
+**pot-head** transforms raw ADC values into clean, processed output values through configurable noise filtering, response shaping, and grab modes.
 
 The library provides a complete processing pipeline for analog inputs in resource-constrained embedded systems. Perfect for audio equipment, industrial control panels, and any embedded device with physical controls.
 
