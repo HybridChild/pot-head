@@ -4,7 +4,7 @@
 > are deterministic and depend only on the compiler version and optimization settings,
 > not on hardware. Results should be identical across machines with the same toolchain.
 
-**Generated:** 2025-12-28 19:00:12 UTC
+**Generated:** 2026-03-13 07:14:03 UTC
 
 **Targets:**
 - Cortex-M0+ (`thumbv6m-none-eabi`) - No FPU, soft-float
@@ -29,9 +29,9 @@ Analysis of binary size impact per feature:
 
 ### libm (std-math feature) - Logarithmic Curves
 
-- **M0+ soft-float**: +1218B (1.2KB)
+- **M0+ soft-float**: +1216B (1.2KB)
 - **M4F hard-float**: +418B (0.4KB)
-- **FPU savings**: 2338B (2.3KB or 79% reduction)
+- **FPU savings**: 2340B (2.3KB or 79% reduction)
 
 The logarithmic curve feature requires libm for transcendental functions.
 On M0+ (no FPU), this adds significant soft-float emulation code.
@@ -42,7 +42,7 @@ On M4F (hardware FPU), libm is much more efficient.
 - **M0+**: +0B
 - **M4F**: +8B
 
-Moving average filter uses  for sample storage.
+Moving average filter uses `heapless::Vec` for sample storage.
 Impact is similar across targets (not FPU-dependent).
 
 ### grab-mode feature
@@ -71,7 +71,7 @@ File  .text   Size     Crate Name
 0.1%   2.5%    74B       std __aeabi_lmul
 0.1%   2.3%    68B       std __aeabi_i2f
 0.2%   6.8%   198B           And 7 smaller methods. Use -n N to show more.
-3.3% 100.0% 2.8KiB           .text section size, the file size is 85.4KiB
+3.3% 100.0% 2.8KiB           .text section size, the file size is 86.3KiB
 ```
 
 ### Cortex-M4F (default features)

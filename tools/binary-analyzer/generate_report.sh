@@ -267,7 +267,7 @@ On M4F (hardware FPU), libm is much more efficient.
 - **M0+**: +${M0_HEAPLESS_COST}B
 - **M4F**: +${M4F_HEAPLESS_COST}B
 
-Moving average filter uses `heapless::Vec` for sample storage.
+Moving average filter uses \`heapless::Vec\` for sample storage.
 Impact is similar across targets (not FPU-dependent).
 
 ### grab-mode feature
