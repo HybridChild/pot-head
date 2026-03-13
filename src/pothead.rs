@@ -287,7 +287,7 @@ where
     #[cfg(feature = "grab-mode")]
     pub fn detach(&mut self) {
         if self.state.grabbed {
-            self.state.virtual_value = self.state.physical_position;
+            self.state.virtual_value = self.state.last_output;
         }
         self.state.grabbed = false;
         self.state.passthrough_initialized = false;
