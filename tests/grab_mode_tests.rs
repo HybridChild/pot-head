@@ -1,6 +1,8 @@
 #![cfg(feature = "grab-mode")]
 
-use pot_head::{Config, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve};
+use pot_head::{
+    Config, GrabMode, HysteresisMode, NoiseFilter, PotHead, ResponseCurve, SnapZone, SnapZoneType,
+};
 
 static CONFIG_NONE: Config<u16, f32> = Config {
     input_min: 0,
@@ -35,6 +37,20 @@ static CONFIG_PASSTHROUGH: Config<u16, f32> = Config {
     curve: ResponseCurve::Linear,
     filter: NoiseFilter::None,
     snap_zones: &[],
+    grab_mode: GrabMode::PassThrough,
+};
+
+static CONFIG_PASSTHROUGH_SNAPPED: Config<u16, f32> = Config {
+    input_min: 0,
+    input_max: 1000,
+    output_min: 0.0,
+    output_max: 1.0,
+    hysteresis: HysteresisMode::None(core::marker::PhantomData),
+    curve: ResponseCurve::Linear,
+    filter: NoiseFilter::None,
+    snap_zones: &[
+        SnapZone::new(0.5, 0.05, SnapZoneType::Snap), // snap to center
+    ],
     grab_mode: GrabMode::PassThrough,
 };
 
@@ -318,4 +334,35 @@ fn test_release_for_mode_switching() {
 
     // Now backlight follows the pot
     assert_eq!(backlight_pot.process(600), 0.6);
+}
+
+#[test]
+fn test_detach_preserves_snapped_virtual_value() {
+    // Regression test: detach() must store last_output (post-snap), not physical_position
+    // (pre-snap). If it stores physical_position, the virtual value after detach is the raw
+    // ADC position inside the snap zone rather than the snapped output, causing the held
+    // value to drift (e.g. 0.48 instead of 0.5) when the user returns to this parameter.
+    let mut pot = PotHead::new(&CONFIG_PASSTHROUGH_SNAPPED).unwrap();
+
+    // Simulate a parameter already set to the snap target (0.5).
+    pot.set_virtual_value(0.5);
+
+    // Pot starts below virtual value; first process initialises passthrough state.
+    pot.process(300);
+    // Cross the virtual value from below — physical 480 is inside the snap zone,
+    // so snapped = 0.5, which equals virtual_value → grabbed.
+    pot.process(480);
+    assert!(!pot.is_waiting_for_grab());
+    assert_eq!(pot.current_output(), 0.5);
+
+    // Physical pot drifts slightly inside the snap zone (530 → snapped to 0.5).
+    // physical_position ≈ 0.53, but last_output == 0.5.
+    pot.process(530);
+    assert_eq!(pot.current_output(), 0.5);
+
+    // Detach — pot is grabbed; physical_position is ~0.53, last_output is 0.5.
+    pot.detach();
+    assert!(pot.is_waiting_for_grab());
+    // virtual_value must be the snapped output (0.5), not the raw physical position (~0.53).
+    assert_eq!(pot.current_output(), 0.5);
 }
